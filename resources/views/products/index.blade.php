@@ -42,49 +42,48 @@
                     <h5 class="card-title mb-0">Products Record</h5>
                     <div class="add-btn">
                         <a href="#" class="btn btn-primary me-2">Import Products</a>
-                        <a href="#" class="btn btn-primary me-2">Export Products</a>
+                        {{-- <a href="#" class="btn btn-primary me-2">Export Products</a> --}}
                         <a href="{{ route('products.create') }}" class="btn btn-primary">Add Product</a>
                     </div>
                 </div>
                 <div class="card-body">
-                    <table id="example" class="table table-bordered dt-responsive nowrap table-striped align-middle" style="width:100%">
+                    <table id="example1" class="table table-bordered table-striped align-middle" style="width:100%">
                         <thead>
                             <tr>
                                 <th data-ordering="false">No</th>
-                                <th>Item Name</th>
+                                <th class="w-100">Item Name</th>
                                 <th>MSKU</th>
                                 <th>ASIN/ITEM.ID</th>
                                 <th>FNSKU</th>
                                 <th>PACK</th>
-                                <th>Action</th>
+                                <th>QTY</th>
+                                {{-- <th>Action</th> --}}
                             </tr>
                         </thead>
                         <tbody>
+                            @php
+                            $counter = 1;
+                            @endphp
                            @foreach($products as $product)
-                           <tr>
-                            <td>{{ $product->id }}</td>
-                            <td>{{ $product->item }}</td>
-                            <td>{{ $product->msku }}</td>
-                            <td>{{ $product->asin }}</td>
-                            <td>{{ $product->fnsku }}</td>
-                            <td>{{ $product->pack }}</td>
-                            <td>
-                                <div class="d-flex">
-                                    <a href="{{ route('products.edit', $product->id) }}" class="btn btn-success edit-item-btn"><i class="ri-pencil-fill align-bottom me-2"></i> Edit</a>
-                                </div>
-                                {{-- <div class="dropdown d-inline-block">
-                                    <button class="btn btn-soft-secondary btn-sm dropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                        <i class="ri-more-fill align-middle"></i>
-                                    </button>
-                                    <ul class="dropdown-menu dropdown-menu-end">
-                                        <li><a href="#!" class="dropdown-item"><i class="ri-eye-fill align-bottom me-2 text-muted"></i> View</a></li>
-                                        <li>
-                                            <a href="{{ route('products.edit', $product->id) }}" class="dropdown-item edit-item-btn"><i class="ri-pencil-fill align-bottom me-2 text-muted"></i> Edit</a>
-                                        </li>
-                                    </ul>
-                                </div> --}}
-                            </td>
-                           </tr>
+                                <tr>
+                                    <td class="py-1">{{ $counter }}</td>
+                                    <td class="py-1 truncate" data-toggle="tooltip" title="{{ $product->item }}">
+                                        <a href="{{ route('products.edit', $product->id) }}">
+                                            <small>{{ Str::limit($product->item, 60, '...') }}</small>
+                                        </a>
+                                    </td>
+                                    <td class="py-1 fw-bold">{{ $product->msku }}</td>
+                                    <td class="py-1">{{ $product->asin }}</td>
+                                    <td class="py-1">{{ $product->fnsku }}</td>
+                                    <td class="py-1">{{ $product->pack }}</td>
+                                    <td class="py-1">{{ $product->dailyInputDetails->first()->total_qty ?? 0 }}</td>
+                                    {{-- <td class="py-1">
+                                        <a href="{{ route('products.edit', $product->id) }}" class="edit-item-btn text-muted"><i class="ri-pencil-fill align-bottom me-2"></i></a>
+                                    </td> --}}
+                                </tr>
+                                @php
+                                $counter++;
+                                @endphp
                            @endforeach
                         </tbody>
                     </table>
@@ -102,7 +101,23 @@
 @section('script')
 <script>
     $(document).ready(function() {
-        $('#example').DataTable();
+        $('[data-toggle="tooltip"]').tooltip();
+
+        $('#example1').DataTable({
+            dom: 'Bfrtip',
+            buttons: [
+                {
+                    extend: 'csvHtml5',
+                    text: 'Export CSV',
+                    title: 'ProductsRecord'
+                },
+                {
+                    extend: 'excelHtml5',
+                    text: 'Export Excel',
+                    title: 'ProductsRecord'
+                }
+            ]
+        });
     });
 </script>
 @endsection

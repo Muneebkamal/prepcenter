@@ -70,17 +70,15 @@
                                         @endif
                                     <td>
                                         @if($employee->role == 1)
-                                            <p class="m-0">Admin</p>
-                                        @elseif($employee->role == 2)
                                             <p class="m-0">Manager</p>
-                                        @elseif($employee->role == 3)
+                                        @elseif($employee->role == 2)
                                             <p class="m-0">User</p>
                                         @endif
                                     </td>
                                     <td>
-                                        @if($employee->status == 'active')
+                                        @if($employee->status == '0')
                                             <div class="badge rounded-pill bg-primary">Active</div>
-                                        @elseif($employee->status == 'not_active')
+                                        @elseif($employee->status == '1')
                                             <div class="badge rounded-pill bg-dark">Not Active</div>
                                         @endif
                                     </td>

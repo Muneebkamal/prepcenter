@@ -122,13 +122,13 @@
                                 <label for="">Status</label>
                                 <div class="d-flex">
                                     <div class="form-check ms-2">
-                                        <input class="form-check-input" type="radio" name="status" id="active" value="active" {{ $employee->status == 'active' ? 'checked' : '' }}>
+                                        <input class="form-check-input" type="radio" name="status" id="0" value="0" {{ $employee->status == 'active' ? 'checked' : '' }}>
                                         <label class="form-check-label" for="active">
                                         Active
                                         </label>
                                     </div>
                                     <div class="form-check ms-3">
-                                        <input class="form-check-input" type="radio" name="status" id="not_active" value="not_active" {{ $employee->status == 'not_active' ? 'checked' : '' }}>
+                                        <input class="form-check-input" type="radio" name="status" id="1" value="1" {{ $employee->status == 'not_active' ? 'checked' : '' }}>
                                         <label class="form-check-label" for="not_active">
                                         Not Active
                                         </label>

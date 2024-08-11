@@ -36,6 +36,11 @@
     <link href="{{ asset('assets/css/app.min.css') }}" rel="stylesheet" type="text/css" />
     <!-- custom Css-->
     <link href="{{ asset('assets/css/custom.min.css') }}" rel="stylesheet" type="text/css" />
+    <style>
+        table tr td{
+            padding: 6px !important;
+        }
+    </style>
     @yield('styles')
 </head>
 
@@ -883,6 +888,11 @@
     <script src="{{ asset('assets/cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js') }}"></script>
 
     <script src="{{ asset('assets/js/pages/datatables.init.js') }}"></script>
+    <!-- JSZip for Excel export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+
+    <!-- DataTables Buttons HTML5 export -->
+    <script src="https://cdn.datatables.net/buttons/1.7.1/js/buttons.html5.min.js"></script>
 
 
     <!-- apexcharts -->

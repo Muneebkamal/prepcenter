@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\DailyInputDetail;
 use App\Models\Products;
 use Illuminate\Http\Request;
 
@@ -12,7 +13,15 @@ class ProductsController extends Controller
      */
     public function index()
     {
-        $products = Products::all();
+        // $sumQty = DailyInputDetail::whereHas('product')
+        // ->whereColumn('daily_input_details.fnsku', 'products.fnsku')
+        // ->sum('qty');
+        
+        $products = Products::with(['dailyInputDetails' => function($query) {
+            $query->select('fnsku')
+                ->selectRaw('SUM(qty) as total_qty')
+                ->groupBy('fnsku');
+        }])->get();
         return view('products.index', compact('products'));
     }
 

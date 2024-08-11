@@ -17,8 +17,6 @@ class DailyInputController extends Controller
      */
     public function index()
     {
-        // $daily_inputs = DailyInputs::all();
-        // $daily_inputs = DailyInputs::with('user')->get();
         $daily_inputs = DailyInputs::with('user')
         ->leftJoinSub(
             DB::table('daily_input_details')
@@ -35,12 +33,164 @@ class DailyInputController extends Controller
         return view('daily_input.index', compact('daily_inputs'));
     }
 
+    public function reportByEmployee(Request $request)
+    {
+        // Retrieve all employees for the dropdown
+        $employees = User::where('status', '0')->get();
+
+        // Initialize the query
+        $query = DailyInputs::with('user')
+            ->leftJoinSub(
+                DB::table('daily_input_details')
+                    ->select('daily_input_id', DB::raw('COALESCE(SUM(qty), 0) as total_qty'))
+                    ->groupBy('daily_input_id'),
+                'details_sum',
+                'daily_inputs.id',
+                'details_sum.daily_input_id'
+            )
+            ->select('daily_inputs.*', 'details_sum.total_qty');
+
+        // Determine the filter to apply, default to 'today'
+        $filterBy = $request->input('filter_by', 'today'); 
+
+        switch ($filterBy) {
+            case 'today':
+                $query->whereDate('daily_inputs.date', today());
+                break;
+
+            case 'custom':
+                if ($request->has('filter_date')) {
+                    $filterDate = $request->input('filter_date');
+                    $query->whereDate('daily_inputs.date', $filterDate);
+                }
+                break;
+
+            case 'last_week':
+                $startOfLastWeek = now()->subDays(7)->startOfDay();
+                $endOfLastWeek = now()->subDay()->endOfDay();
+                $query->whereBetween('daily_inputs.date', [$startOfLastWeek, $endOfLastWeek]);
+                break;
+
+            case 'last_month':
+                $startOfLastMonth = now()->subDays(30)->startOfDay();
+                $endOfLastMonth = now()->endOfDay();
+                $query->whereBetween('daily_inputs.date', [$startOfLastMonth, $endOfLastMonth]);
+                break;
+
+            case 'last_year':
+                $startOfLastYear = now()->subDays(365)->startOfDay();
+                $endOfLastYear = now()->endOfDay();
+                $query->whereBetween('daily_inputs.date', [$startOfLastYear, $endOfLastYear]);
+                break;
+        }
+
+        // Apply employee filter if specified
+        if ($request->has('employee_id') && $request->input('employee_id') !== 'all') {
+            $employeeId = $request->input('employee_id');
+            $query->where('daily_inputs.employee_id', $employeeId);
+        }
+
+        // Execute the query and get results
+        $report_by_employees = $query->orderBy('id', 'DESC')->get();
+
+        // Return the view with the data
+        return view('report_by_employee.index', compact('report_by_employees', 'employees'));
+    }
+
+    public function reportByTime(Request $request)
+    {
+        // Initialize the query
+        $query = DailyInputs::with('user')
+            ->leftJoinSub(
+                DB::table('daily_input_details')
+                    ->select('daily_input_id', DB::raw('COALESCE(SUM(qty), 0) as total_qty'))
+                    ->groupBy('daily_input_id'),
+                'details_sum',
+                'daily_inputs.id',
+                'details_sum.daily_input_id'
+            )
+            ->select('daily_inputs.*', 'details_sum.total_qty');
+
+        // Determine the filter to apply, default to 'today'
+        $filterBy = $request->input('filter_by', 'today'); 
+
+        switch ($filterBy) {
+            case 'today':
+                $query->whereDate('daily_inputs.date', today());
+                break;
+
+            case 'custom':
+                if ($request->has('filter_date')) {
+                    $filterDate = $request->input('filter_date');
+                    $query->whereDate('daily_inputs.date', $filterDate);
+                }
+                break;
+
+            case 'last_week':
+                $startOfLastWeek = now()->subDays(7)->startOfDay();
+                $endOfLastWeek = now()->subDay()->endOfDay();
+                $query->whereBetween('daily_inputs.date', [$startOfLastWeek, $endOfLastWeek]);
+                break;
+
+            case 'last_month':
+                $startOfLastMonth = now()->subDays(30)->startOfDay();
+                $endOfLastMonth = now()->endOfDay();
+                $query->whereBetween('daily_inputs.date', [$startOfLastMonth, $endOfLastMonth]);
+                break;
+
+            case 'last_year':
+                $startOfLastYear = now()->subDays(365)->startOfDay();
+                $endOfLastYear = now()->endOfDay();
+                $query->whereBetween('daily_inputs.date', [$startOfLastYear, $endOfLastYear]);
+                break;
+        }
+
+        // Execute the query and get results
+        $report_by_times = $query->orderBy('id', 'DESC')->get();
+
+        // Return the view with the data
+        return view('report_by_time.index', compact('report_by_times'));
+    }
+
+    public function monthlySummary(Request $request)
+    {
+        $employees = User::where('status', '0')->get();
+        $query = DailyInputs::with('user');
+
+        $filterMonth = $request->input('filter_month', null);
+        $employeeId = $request->input('employee_id', null);
+
+        if ($filterMonth && $employeeId !== null) {
+            $monthYear = \DateTime::createFromFormat('Y-m', $filterMonth);
+
+            if ($monthYear) {
+                $month = $monthYear->format('m');
+                $year = $monthYear->format('Y');
+
+                $query->whereMonth('date', $month)
+                    ->whereYear('date', $year);
+            } else {
+                $query->whereRaw('1 = 0');
+            }
+
+            if ($employeeId !== 'all') {
+                $query->where('employee_id', $employeeId);
+            }
+        } else {
+            $query->whereRaw('1 = 0');
+        }
+
+        $monthly_summary = $query->orderBy('id', 'DESC')->get();
+        return view('monthly-summary.index', compact('monthly_summary', 'employees'));
+    }
+
+
     /**
      * Show the form for creating a new resource.
      */
     public function create()
     {
-        $employees = User::where('status', 'active')->get();
+        $employees = User::where('status', '0')->get();
         return view('daily_input.add-daily-input', compact('employees'));
     }
 

@@ -62,13 +62,13 @@
                         <li class="menu-title"><span data-key="t-menu">REPORT PAGES</span></li>
 
                         <li class="nav-item">
-                            <a class="nav-link menu-link" href="#">
+                            <a class="nav-link menu-link {{ request()->is('report-by-employee', 'employee-search') ? 'active' : '' }}" href="{{ route('report.by.employee') }}">
                                 <i class="bx bx-add-to-queue"></i> <span data-key="t-widgets">Report By Employee</span>
                             </a>
                         </li>
 
                         <li class="nav-item">
-                            <a class="nav-link menu-link" href="#">
+                            <a class="nav-link menu-link {{ request()->is('report-by-time', 'time-search') ? 'active' : '' }}" href="{{ route('report.by.time') }}">
                                 <i class="bx bx-add-to-queue"></i> <span data-key="t-widgets">Report By Time</span>
                             </a>
                         </li>
@@ -76,7 +76,7 @@
                         <li class="menu-title"><span data-key="t-menu">SUMMARY</span></li>
 
                         <li class="nav-item">
-                            <a class="nav-link menu-link" href="#">
+                            <a class="nav-link menu-link {{ request()->is('monthly-summary', 'summary-search') ? 'active' : '' }}" href="{{ route('monthly.summary') }}">
                                 <i class="las la-calendar"></i> <span data-key="t-widgets">Monthly Date Summary</span>
                             </a>
                         </li>

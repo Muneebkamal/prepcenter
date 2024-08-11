@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Products;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -137,21 +138,26 @@ class EmployeeController extends Controller
     }
 
 
-    public function mergeData()
+    public function employeeMerge()
     {
-        // Fetch matching employee and user records using a JOIN
         $results = DB::table('old_employee')
         ->where('old_employee.email', '<>', '') 
         ->get();
             // dd($results);
-        // Insert the results into the user_combined table
         foreach ($results as $result) {
-            $email = $result->email; // Replace with the email you want to check
+            $email = $result->email; 
             $existingUser = DB::table('old_users')
                 ->where('email', $email)
                 ->first();
-                // print_r($existingUser);
-                // dd($result->first_name);
+                if($result->employee_status == 11){
+                    $status = 0;
+                }
+                elseif($result->employee_status == 12)
+                {
+                    $status = 1;
+                }else{
+                    $status = $result->employee_status;
+                }
             if ($existingUser) {
                 User::create([
                     'id' => $result->id,
@@ -163,12 +169,63 @@ class EmployeeController extends Controller
                     'phone_no' => $result->phone,
                     'role' => $result->role_id,
                     'department' => $result->id_department,
-                    'status' => $result->employee_status,
+                    'status' => $status,
                     'rate' => $result->rate,
                 ]);
             }
         }
 
+        $results1 = DB::table('old_employee')
+        ->where('old_employee.email', '') 
+        ->get();
+        foreach ($results1 as $result1) {
+                $email = $result1->first_name. '@temp_mail.com';
+                if($result1->employee_status == 11){
+                    $status1 = 0;
+                }
+                elseif($result1->employee_status == 12)
+                {
+                    $status1 = 1;
+                }else{
+                    $status1 = $result1->employee_status;
+                }
+                User::create([
+                    'id' => $result1->id,
+                    'name' => $result1->first_name . $result1->last_name,
+                    'first_name' => $result1->first_name,
+                    'last_name' => $result1->last_name,
+                    'email' => $email,
+                    'password' => Hash::make('password'),
+                    'phone_no' => $result1->phone,
+                    'role' => $result1->role_id,
+                    'department' => $result1->id_department,
+                    'status' => $status1,
+                    'rate' => $result1->rate,
+                ]);
+        }
+
         return 'Data merged successfully!';
+    }
+
+    public function emloyeesData()
+    {
+        set_time_limit(150);
+
+        $results = DB::table('import_result') 
+        ->get();
+            // dd($results);
+        foreach ($results as $result) {
+
+            $product = new Products;
+            $product->id = $result->id;
+            $product->item = $result->title;
+            $product->msku = $result->msku;
+            $product->asin = $result->asin;
+            $product->fnsku = $result->fnsku;
+            $product->pack = $result->pcs;
+            $product->save();
+        }
+
+        return 'Products merged successfully!';
     }
 }

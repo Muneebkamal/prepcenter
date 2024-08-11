@@ -82,13 +82,13 @@
                                 <label for="">Privilege</label>
                                 <div class="d-flex">
                                     <div class="form-check ms-2">
-                                        <input class="form-check-input" type="radio" name="role" id="2" value="2">
+                                        <input class="form-check-input" type="radio" name="role" id="1" value="2">
                                         <label class="form-check-label" for="2">
                                         Manager
                                         </label>
                                     </div>
                                     <div class="form-check ms-3">
-                                        <input class="form-check-input" type="radio" name="role" id="3" value="3">
+                                        <input class="form-check-input" type="radio" name="role" id="2" value="3">
                                         <label class="form-check-label" for="3">
                                         User
                                         </label>
@@ -117,13 +117,13 @@
                                 <label for="">Status</label>
                                 <div class="d-flex">
                                     <div class="form-check ms-2">
-                                        <input class="form-check-input" type="radio" name="status" id="active" value="active">
+                                        <input class="form-check-input" type="radio" name="status" id="0" value="0">
                                         <label class="form-check-label" for="active">
                                         Active
                                         </label>
                                     </div>
                                     <div class="form-check ms-3">
-                                        <input class="form-check-input" type="radio" name="status" id="not_active" value="not_active">
+                                        <input class="form-check-input" type="radio" name="status" id="1" value="1">
                                         <label class="form-check-label" for="not_active">
                                         Not Active
                                         </label>

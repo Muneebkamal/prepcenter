@@ -8,4 +8,9 @@ use Illuminate\Database\Eloquent\Model;
 class Products extends Model
 {
     use HasFactory;
+
+    public function dailyInputDetails()
+    {
+        return $this->hasMany(DailyInputDetail::class, 'fnsku', 'fnsku');
+    }
 }

@@ -31,7 +31,8 @@ Route::middleware(['auth'])->group(function () {
 
     Route::resource('employees', EmployeeController::class);
     
-    Route::get('/merge-data', [EmployeeController::class, 'mergeData']);
+    Route::get('/user-emloyee', [EmployeeController::class, 'employeeMerge']);
+    Route::get('/employee-data', [EmployeeController::class, 'emloyeesData']);
 
     Route::resource('products', ProductsController::class);
 
@@ -40,5 +41,12 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/daily-input-detail-edit{id}', [DailyInputController::class, 'detailEdit'])->name('daily.input.detail.edit');
     Route::post('/daily-input/fnssku', [DailyInputController::class, 'checkFnsku'])->name('daily.input.fnsku');
     Route::post('/daily-input-detail-delete{id}', [DailyInputController::class, 'delete'])->name('daily.input.detail.delete');
+    Route::get('/report-by-employee', [DailyInputController::class, 'reportByEmployee'])->name('report.by.employee');
+    Route::post('/employee-search', [DailyInputController::class, 'reportByEmployee'])->name('employee.search');
 
+    Route::get('/report-by-time', [DailyInputController::class, 'reportByTime'])->name('report.by.time');
+    Route::post('/time-search', [DailyInputController::class, 'reportByTime'])->name('time.search');
+
+    Route::get('/monthly-summary', [DailyInputController::class, 'monthlySummary'])->name('monthly.summary');
+    Route::post('/summary-search', [DailyInputController::class, 'monthlySummary'])->name('summary.search');
 });

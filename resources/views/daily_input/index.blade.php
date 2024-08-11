@@ -67,7 +67,7 @@
                         <tbody>
                             @foreach($daily_inputs as $daily_input)
                             <tr>
-                                <td>{{ Carbon::parse($daily_input->date)->format('l F j, Y') }}</td>
+                                <td>{{ Carbon::parse($daily_input->date)->format('D, F j, Y') }}</td>
                                 <td>{{ $daily_input->user->name ?? 'N/A' }}</td>
                                 <td>{{ $daily_input->start_time }}</td>
                                 <td>{{ $daily_input->end_time }}</td>
@@ -83,7 +83,7 @@
                                 <td>{{ number_format($daily_input->total_packing_cost, 3) }}</td>
                                 <td>{{ number_format($daily_input->total_item_hour, 2) }}</td>
                                 <td>
-                                    <a href="{{ route('daily-input.show', $daily_input->id) }}" class="btn btn-primary">
+                                    <a href="{{ route('daily-input.show', $daily_input->id) }}" class="btn btn-primary p-1 m-0">
                                         <i class="ri-eye-fill align-bottom me-2"></i> View
                                     </a>
                                     {{-- <div class="dropdown d-inline-block">
