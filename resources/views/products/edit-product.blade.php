@@ -36,6 +36,7 @@
                         <div class="row">
                             <div class="col-md-6 mt-2">
                                 <input type="hidden" name="id" value="{{ $product->id }}">
+                                <label for="">ITEM NAME</label>
                                 <input type="text" name="item" class="form-control" value="{{ $product->item }}" placeholder="Item / Title Product">
                                 @error('item')
                                     <div class="invalid-feedback">
@@ -44,6 +45,7 @@
                                 @enderror
                             </div>
                             <div class="col-md-6 mt-2">
+                                <label for="">MSKU</label>
                                 <input type="text" name="msku" value="{{ $product->msku }}" class="form-control" placeholder="MSKU">
                                 @error('msku')
                                     <div class="invalid-feedback">
@@ -52,6 +54,7 @@
                                 @enderror
                             </div>
                             <div class="col-md-6 mt-2">
+                                <label for="">ASIN / ITEM ID</label>
                                 <input type="text" name="asin" value="{{ $product->asin }}" class="form-control" placeholder="ASIN">
                                 @error('asin')
                                     <div class="invalid-feedback">
@@ -60,7 +63,8 @@
                                 @enderror
                             </div>
                             <div class="col-md-6 mt-2">
-                                <input type="text" name="fnsku" value="{{ $product->fnsku }}" class="form-control" placeholder="FNSKU">
+                                <label for="">FNSKU / GTIN</label>
+                                <input type="text" name="fnsku" value="{{ $product->fnsku }}" class="form-control" placeholder="FNSKU" readonly>
                                 @error('fnsku')
                                     <div class="invalid-feedback">
                                         {{ $message }}
@@ -68,7 +72,8 @@
                                 @enderror
                             </div>
                             <div class="col-md-6 mt-2">
-                                <input type="text" name="pack" value="{{ $product->pack }}" class="form-control" placeholder="Pack">
+                                <label for="">PACK</label>
+                                <input type="number" name="pack" value="{{ $product->pack }}" class="form-control" placeholder="Pack">
                                 @error('pack')
                                     <div class="invalid-feedback">
                                         {{ $message }}

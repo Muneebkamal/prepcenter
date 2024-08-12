@@ -687,10 +687,8 @@
                                         <span class="d-none d-xl-inline-block ms-1 fw-medium user-name-text">{{ Auth::user()->name}}</span>
                                         <span class="d-none d-xl-block ms-1 fs-12 user-name-sub-text">
                                             @if(Auth::user()->role === 1)
-                                                Admin
-                                                @elseif(Auth::user()->role === 2)
                                                 Manager
-                                                @elseif(Auth::user()->role === 3)
+                                                @elseif(Auth::user()->role === 2)
                                                 user
                                             @endif
                                         </span>

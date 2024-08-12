@@ -76,7 +76,7 @@ class ProductsController extends Controller
         $product->item = $request->item;
         $product->msku = $request->msku;
         $product->asin = $request->asin;
-        $product->fnsku = $request->fnsku;
+        // $product->fnsku = $request->fnsku;
         $product->pack = $request->pack;
         $product->save();
         return response()->json(['success'=>'product updated Successful!']);

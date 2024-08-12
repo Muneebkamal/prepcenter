@@ -49,4 +49,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/monthly-summary', [DailyInputController::class, 'monthlySummary'])->name('monthly.summary');
     Route::post('/summary-search', [DailyInputController::class, 'monthlySummary'])->name('summary.search');
+
+    Route::get('/system-setting', [DailyInputController::class, 'systemSetting'])->name('system.setting');
+    Route::post('/system-setting-add', [DailyInputController::class, 'systemSetting'])->name('system.setting.add');
 });
