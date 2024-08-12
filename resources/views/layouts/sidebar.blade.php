@@ -34,9 +34,9 @@
                 <div id="two-column-menu">
                 </div>
                 <ul class="navbar-nav" id="navbar-nav">
-                    @if(Auth::user()->role == 2)
+                    @if(Auth::user()->role == 1)
                         <li class="nav-item">
-                            <a class="nav-link menu-link {{ request()->is('dashboard') ? 'active' : '' }}" href="{{ url('/dashboard') }}">
+                            <a class="nav-link menu-link {{ request()->is('/') ? 'active' : '' }}" href="{{ url('/') }}">
                                 <i class="bx bx-category"></i> <span data-key="t-widgets">Dashboard</span>
                             </a>
                         </li>
@@ -80,6 +80,11 @@
                                 <i class="las la-calendar"></i> <span data-key="t-widgets">Monthly Date Summary</span>
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link menu-link {{ request()->is('system-setting', 'system-setting-add') ? 'active' : '' }}" href="{{ route('system.setting') }}">
+                                <i class="ri-settings-5-line"></i> <span data-key="t-widgets">System Setting</span>
+                            </a>
+                        </li>
                         
                         <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
                             @csrf
@@ -90,7 +95,7 @@
                             </a>
                         </li>
 
-                    @elseif(Auth::user()->role == 3)
+                    @elseif(Auth::user()->role == 2)
                         <li class="nav-item">
                             <a class="nav-link menu-link {{ request()->is('dashboard') ? 'active' : '' }}" href="{{ url('/dashboard') }}">
                                 <i class="bx bx-category"></i> <span data-key="t-widgets">Dashboard</span>
@@ -100,6 +105,15 @@
                         <li class="nav-item">
                             <a class="nav-link menu-link {{ request()->is('daily-input') ? 'active' : '' }}" href="{{ route('daily-input.index') }}">
                                 <i class="ri-checkbox-circle-line"></i> <span data-key="t-widgets">Daily Input</span>
+                            </a>
+                        </li>
+
+                        <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+                            @csrf
+                        </form>
+                        <li class="nav-item">
+                            <a class="nav-link menu-link" onclick="event.preventDefault();document.getElementById('logout-form').submit();">
+                                <i class="mdi mdi-logout"></i> <span data-key="t-widgets">Logout</span>
                             </a>
                         </li>
                     @endif

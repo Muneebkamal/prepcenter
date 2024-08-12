@@ -35,7 +35,7 @@
                         <div class="row">
                             <div class="col-md-6 mt-2">
                                 <label for="">First Name</label>
-                                <input type="text" name="first_name" class="form-control" required>
+                                <input type="text" name="first_name" class="form-control" required autocomplete="off">
                                 @error('first_name')
                                     <div class="invalid-feedback">
                                         {{ $message }}
@@ -44,7 +44,7 @@
                             </div>
                             <div class="col-md-6 mt-2">
                                 <label for="">Last Name</label>
-                                <input type="text" name="last_name" class="form-control" required>
+                                <input type="text" name="last_name" class="form-control" required autocomplete="off">
                                 @error('last_name')
                                     <div class="invalid-feedback">
                                         {{ $message }}
@@ -53,7 +53,7 @@
                             </div>
                             <div class="col-md-6 mt-2">
                                 <label for="">Email</label>
-                                <input type="email" name="email" class="form-control" required>
+                                <input type="email" name="email" class="form-control" required autocomplete="off">
                                 @error('email')
                                     <div class="invalid-feedback">
                                         {{ $message }}
@@ -62,7 +62,7 @@
                             </div>
                             <div class="col-md-6 mt-2">
                                 <label for="">Password</label>
-                                <input type="password" name="password" class="form-control" required>
+                                <input type="password" name="password" class="form-control" required autocomplete="off">
                                 @error('password')
                                     <div class="invalid-feedback">
                                         {{ $message }}
@@ -82,13 +82,13 @@
                                 <label for="">Privilege</label>
                                 <div class="d-flex">
                                     <div class="form-check ms-2">
-                                        <input class="form-check-input" type="radio" name="role" id="1" value="2">
+                                        <input class="form-check-input" type="radio" name="role" id="1" value="1">
                                         <label class="form-check-label" for="2">
                                         Manager
                                         </label>
                                     </div>
                                     <div class="form-check ms-3">
-                                        <input class="form-check-input" type="radio" name="role" id="2" value="3">
+                                        <input class="form-check-input" type="radio" name="role" id="2" value="2">
                                         <label class="form-check-label" for="3">
                                         User
                                         </label>
@@ -102,7 +102,7 @@
                             </div>
                             <div class="col-md-6 mt-2">
                                 <label for="">Department</label>
-                                <select class="form-select" name="department">
+                                <select class="form-select" name="department" required>
                                     <option value="" disabled>- Select Department -</option>
                                     <option value="1">one</option>
                                     <option value="2">two</option>
@@ -137,7 +137,7 @@
                             </div>
                             <div class="col-md-6 mt-2">
                                 <label for="">Rate</label>
-                                <input type="text" name="rate" class="form-control">
+                                <input type="number" name="rate" class="form-control" required>
                                 @error('rate')
                                 <div class="invalid-feedback">
                                     {{ $message }}

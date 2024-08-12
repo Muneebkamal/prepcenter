@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\DailyInputDetail;
 use App\Models\DailyInputs;
 use App\Models\Products;
+use App\Models\SystemSetting;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -52,7 +53,7 @@ class DailyInputController extends Controller
 
         // Determine the filter to apply, default to 'today'
         $filterBy = $request->input('filter_by', 'today'); 
-
+        $weekStartDay = SystemSetting::first()->week_started_day ?? 6;
         switch ($filterBy) {
             case 'today':
                 $query->whereDate('daily_inputs.date', today());
@@ -82,18 +83,22 @@ class DailyInputController extends Controller
                 $endOfLastYear = now()->endOfDay();
                 $query->whereBetween('daily_inputs.date', [$startOfLastYear, $endOfLastYear]);
                 break;
+
+            case 'this_week':
+                $currentDayOfWeek = now()->dayOfWeekIso;
+                $startOfWeek = now()->startOfWeek()->subDays(($currentDayOfWeek - $weekStartDay + 7) % 7)->startOfDay();
+                $endOfWeek = $startOfWeek->copy()->addDays(6)->endOfDay();
+                $query->whereBetween('daily_inputs.date', [$startOfWeek, $endOfWeek]);
+                break;
+                
         }
 
-        // Apply employee filter if specified
         if ($request->has('employee_id') && $request->input('employee_id') !== 'all') {
             $employeeId = $request->input('employee_id');
             $query->where('daily_inputs.employee_id', $employeeId);
         }
 
-        // Execute the query and get results
         $report_by_employees = $query->orderBy('id', 'DESC')->get();
-
-        // Return the view with the data
         return view('report_by_employee.index', compact('report_by_employees', 'employees'));
     }
 
@@ -113,7 +118,7 @@ class DailyInputController extends Controller
 
         // Determine the filter to apply, default to 'today'
         $filterBy = $request->input('filter_by', 'today'); 
-
+        $weekStartDay = SystemSetting::first()->week_started_day ?? 6;
         switch ($filterBy) {
             case 'today':
                 $query->whereDate('daily_inputs.date', today());
@@ -142,6 +147,13 @@ class DailyInputController extends Controller
                 $startOfLastYear = now()->subDays(365)->startOfDay();
                 $endOfLastYear = now()->endOfDay();
                 $query->whereBetween('daily_inputs.date', [$startOfLastYear, $endOfLastYear]);
+                break;
+
+            case 'this_week':
+                $currentDayOfWeek = now()->dayOfWeekIso;
+                $startOfWeek = now()->startOfWeek()->subDays(($currentDayOfWeek - $weekStartDay + 7) % 7)->startOfDay();
+                $endOfWeek = $startOfWeek->copy()->addDays(6)->endOfDay();
+                $query->whereBetween('daily_inputs.date', [$startOfWeek, $endOfWeek]);
                 break;
         }
 
@@ -184,6 +196,31 @@ class DailyInputController extends Controller
         return view('monthly-summary.index', compact('monthly_summary', 'employees'));
     }
 
+    public function systemSetting(Request $request)
+    {
+        $setting = SystemSetting::first();
+        
+        if ($request->isMethod('post')) {
+            $request->validate([
+                'day' => 'required|integer',
+            ]);
+
+            if ($setting) {
+                $setting->week_started_day = $request->day;
+                $setting->save();
+
+                return view('system-setting.index', compact('setting'))->with('success', 'Day Updated Successfully');
+            } else {
+                $started_day = new SystemSetting;
+                $started_day->week_started_day = $request->day;
+                $started_day->save();
+
+                return view('system-setting.index', compact('setting'))->with('success', 'Day Added Successfully');
+            }
+        } else {
+            return view('system-setting.index', compact('setting'));
+        }
+    }
 
     /**
      * Show the form for creating a new resource.

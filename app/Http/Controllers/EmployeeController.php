@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\DailyInputs;
 use App\Models\Products;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -91,11 +93,9 @@ class EmployeeController extends Controller
         // Validate the request data
         $validated = $request->validate([
             'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
+            // 'last_name' => 'required|string|max:255',
             'phone_no' => 'nullable|string|max:20',
             'role' => 'required|string|max:255',
-            'department' => 'nullable|string|max:255',
-            'status' => 'required|string|max:50',
             'rate' => 'nullable|numeric'
         ]);
 
@@ -116,6 +116,16 @@ class EmployeeController extends Controller
         $employee->department = $request->department;
         $employee->status = $request->status;
         $employee->rate = $request->rate;
+
+        if ($request->filled('date')) {
+            $requestDate = Carbon::parse($request->date);
+            $today = Carbon::today();
+            $dailyInputs = DailyInputs::where('date', '<=', $today)->where('date', '>=', $requestDate)->get();
+            foreach ($dailyInputs as $dailyInput) {
+                $dailyInput->rate = $request->rate;
+                $dailyInput->save(); // Save each record individually
+            }
+        }
 
         // Save the employee to the database
         $employee->save();
