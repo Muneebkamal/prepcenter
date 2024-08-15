@@ -45,7 +45,7 @@
                                 @enderror
                             </div>
                             <div class="col-md-6 mt-2">
-                                <label for="">MSKU</label>
+                                <label for="">MSKU / SKU</label>
                                 <input type="text" name="msku" value="{{ $product->msku }}" class="form-control" placeholder="MSKU">
                                 @error('msku')
                                     <div class="invalid-feedback">

@@ -23,16 +23,26 @@ Auth::routes();
 
 Route::middleware(['auth'])->group(function () {
 
-    Route::get('/', function () {
-        return view('dashboard');
-    });
+    // Route::get('/', function () {
+    //     return view('dashboard');
+    // });
+    Route::get('/', [DailyInputController::class, 'dashboard'])->name('dashboard');
 
     // Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
     Route::resource('employees', EmployeeController::class);
-    
+
+    // user employee merge
     Route::get('/user-emloyee', [EmployeeController::class, 'employeeMerge']);
-    Route::get('/employee-data', [EmployeeController::class, 'emloyeesData']);
+
+    // products data
+    Route::get('/products-data/merge', [EmployeeController::class, 'productsData']);
+
+    // daily Input data
+    Route::get('/daily/input/merge', [EmployeeController::class, 'dailyInputMerge']);
+
+    // daily Input Detail data
+    Route::get('/daily-input-details/merge', [EmployeeController::class, 'dailyInputDetailMerge']);
 
     Route::resource('products', ProductsController::class);
 
@@ -41,6 +51,11 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/daily-input-detail-edit{id}', [DailyInputController::class, 'detailEdit'])->name('daily.input.detail.edit');
     Route::post('/daily-input/fnssku', [DailyInputController::class, 'checkFnsku'])->name('daily.input.fnsku');
     Route::post('/daily-input-detail-delete{id}', [DailyInputController::class, 'delete'])->name('daily.input.detail.delete');
+
+    Route::get('/import/products', [ProductsController::class, 'importProducts'])->name('import.products');
+    Route::post('/import/csv', [ProductsController::class, 'uploadCSV'])->name('import.csv');
+    Route::post('/import/walmart', [ProductsController::class, 'uploadWalmart'])->name('import.walmart');
+
     Route::get('/report-by-employee', [DailyInputController::class, 'reportByEmployee'])->name('report.by.employee');
     Route::post('/employee-search', [DailyInputController::class, 'reportByEmployee'])->name('employee.search');
 
@@ -52,4 +67,5 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/system-setting', [DailyInputController::class, 'systemSetting'])->name('system.setting');
     Route::post('/system-setting-add', [DailyInputController::class, 'systemSetting'])->name('system.setting.add');
+    Route::post('/department-add', [DailyInputController::class, 'depAdd'])->name('department.add');
 });

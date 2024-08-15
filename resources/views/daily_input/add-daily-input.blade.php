@@ -49,7 +49,7 @@
                             </div>
                             <div class="col-md-6 mt-2">
                                 <label for="">Date</label>
-                                <input type="date" name="date" class="form-control" required>
+                                <input type="date" name="date" class="form-control" value="{{ now()->format('Y-m-d') }}" required>
                                 @error('date')
                                     <div class="invalid-feedback">
                                         {{ $message }}

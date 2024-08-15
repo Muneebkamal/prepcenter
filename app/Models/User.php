@@ -36,6 +36,11 @@ class User extends Authenticatable
         return $this->hasMany(DailyInputs::class, 'employee_id');
     }
 
+    public function departments()
+    {
+        return $this->hasOne(Department::class, 'id', 'department');
+    }
+
     /**
      * The attributes that should be hidden for serialization.
      *

@@ -109,8 +109,9 @@
                                 <label for="">Department</label>
                                 <select class="form-select" name="department">
                                     <option value="" disabled>- Select Department -</option>
-                                    <option value="1" {{ $employee->department == 1 ? 'selected' : '' }}>one</option>
-                                    <option value="2" {{ $employee->department == 2 ? 'selected' : '' }}>two</option>
+                                    @foreach($departments as $department)
+                                        <option value="{{ $department->id }}" {{ $department->id == $employee->department ? 'selected' : '' }}>{{ $department->dep_name }}</option>
+                                    @endforeach
                                 </select>
                                 @error('department')
                                 <div class="invalid-feedback">

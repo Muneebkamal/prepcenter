@@ -63,11 +63,13 @@
                                         <p class="m-0"><a>{{ $employee->email }}</a></p>
                                     </td>
                                     <td>
-                                        @if($employee->department == 1)
-                                        <p class="m-0">ONE</p>
-                                        @elseif($employee->department == 2)
-                                        <p class="m-0">TWO</p>
-                                        @endif
+                                        <p class="m-0">
+                                            @if($employee->departments)
+                                                {{ $employee->departments->dep_name ?? '--' }}
+                                            @else
+                                                No Department
+                                            @endif
+                                        </p>
                                     <td>
                                         @if($employee->role == 1)
                                             <p class="m-0">Manager</p>

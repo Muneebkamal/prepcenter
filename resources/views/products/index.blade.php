@@ -41,8 +41,7 @@
                 <div class="card-header d-flex justify-content-between">
                     <h5 class="card-title mb-0">Products Record</h5>
                     <div class="add-btn">
-                        <a href="#" class="btn btn-primary me-2">Import Products</a>
-                        {{-- <a href="#" class="btn btn-primary me-2">Export Products</a> --}}
+                        <a href="{{ route('import.products') }}" class="btn btn-primary me-2">Import Products</a>
                         <a href="{{ route('products.create') }}" class="btn btn-primary">Add Product</a>
                     </div>
                 </div>
@@ -52,9 +51,9 @@
                             <tr>
                                 <th data-ordering="false">No</th>
                                 <th class="w-100">Item Name</th>
-                                <th>MSKU</th>
+                                <th>MSKU/SKU</th>
                                 <th>ASIN/ITEM.ID</th>
-                                <th>FNSKU</th>
+                                <th>FNSKU/GTIN</th>
                                 <th>PACK</th>
                                 <th>QTY</th>
                                 {{-- <th>Action</th> --}}
@@ -75,8 +74,14 @@
                                     <td class="py-1 fw-bold">{{ $product->msku }}</td>
                                     <td class="py-1">{{ $product->asin }}</td>
                                     <td class="py-1">{{ $product->fnsku }}</td>
-                                    <td class="py-1">{{ $product->pack }}</td>
-                                    <td class="py-1">{{ $product->dailyInputDetails->first()->total_qty ?? 0 }}</td>
+                                    <td class="py-1">
+                                        @if($product->pack == 0 || $product->pack == '')
+                                            1
+                                        @else
+                                        {{ $product->pack }}
+                                        @endif
+                                    </td>
+                                    <td class="py-1">{{ $product->dailyInputDetails->first()->total_qty ?? 1 }}</td>
                                     {{-- <td class="py-1">
                                         <a href="{{ route('products.edit', $product->id) }}" class="edit-item-btn text-muted"><i class="ri-pencil-fill align-bottom me-2"></i></a>
                                     </td> --}}
@@ -104,7 +109,8 @@
         $('[data-toggle="tooltip"]').tooltip();
 
         $('#example1').DataTable({
-            dom: 'Bfrtip',
+            dom: 'lBfrtip',
+            pageLength: 100,
             buttons: [
                 {
                     extend: 'csvHtml5',

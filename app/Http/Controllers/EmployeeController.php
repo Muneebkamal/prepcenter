@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\DailyInputs;
+use App\Models\Department;
 use App\Models\Products;
 use App\Models\User;
 use Carbon\Carbon;
@@ -17,7 +18,8 @@ class EmployeeController extends Controller
      */
     public function index()
     {
-        $employees = User::all();
+        $employees = User::with('departments')->get();
+        // dd($employees[0]->departments);
         return view('employee.index',compact('employees'));
     }
 
@@ -26,7 +28,8 @@ class EmployeeController extends Controller
      */
     public function create()
     {
-        return view('employee.add-employee');
+        $departments = Department::all();
+        return view('employee.add-employee', compact('departments'));
     }
 
     /**
@@ -73,8 +76,8 @@ class EmployeeController extends Controller
     public function show(string $id)
     {
         $employee = User::where('id', $id)->first();
-        // dd($employee[0]->email);
-        return view('employee.edit-employee', compact('employee'));
+        $departments = Department::all();
+        return view('employee.edit-employee', compact('employee', 'departments'));
     }
 
     /**
@@ -147,7 +150,7 @@ class EmployeeController extends Controller
         // return response()->json(['message' => 'Employee deleted successfully.'], 200);
     }
 
-
+    // user and employee
     public function employeeMerge()
     {
         $results = DB::table('old_employee')
@@ -217,7 +220,8 @@ class EmployeeController extends Controller
         return 'Data merged successfully!';
     }
 
-    public function emloyeesData()
+    // product merge
+    public function productsData()
     {
         set_time_limit(150);
 
@@ -232,10 +236,72 @@ class EmployeeController extends Controller
             $product->msku = $result->msku;
             $product->asin = $result->asin;
             $product->fnsku = $result->fnsku;
-            $product->pack = $result->pcs;
+            if ($result->pcs == 0 || $result->pcs == '') {
+                $product->pack = 1;
+            } else {
+                $product->pack = $result->pcs;
+            }
             $product->save();
         }
 
         return 'Products merged successfully!';
+    }
+
+    //daily import
+    public function dailyInputMerge()
+    {
+        set_time_limit(120);
+        $results = DB::table('old_daily_input') 
+        ->get();
+        // dd($results);
+        foreach ($results as $result) {
+
+            $dailyInput = new DailyInputs;
+            $dailyInput->id = $result->id;
+            $dailyInput->employee_id = $result->id_employee;
+            $dailyInput->date = $result->date;
+            $dailyInput->start_time = $result->start_time;
+            $dailyInput->end_time = $result->endtime;
+            $dailyInput->total_time_in_sec = $result->total_time_in_sec;
+            $dailyInput->total_paid = $result->total_paid;
+            $dailyInput->total_packing_cost = $result->total_packing_cost;
+            $dailyInput->total_item_hour = $result->total_item_hour;
+            $dailyInput->rate = $result->rate;
+            $dailyInput->save();
+        }
+
+        return 'Daily Input merged successfully!';
+    }
+
+    //daily import
+    public function dailyInputDetailMerge()
+    {
+        set_time_limit(120);
+        $results = DB::table('old_daily_input_detail') 
+        ->get();
+        // dd($results);
+        foreach ($results as $result) {
+
+            $dailyInputDetail = new DailyInputs;
+            $dailyInputDetail->id = $result->id;
+            $dailyInputDetail->daily_input_id = $result->id_daily_input;
+            $dailyInputDetail->fnsku = $result->fnsku;
+
+            if ($result->pcs == 0 || $result->pcs == '') {
+                $dailyInputDetail->pack = 1;
+            } else {
+                $dailyInputDetail->pack = $result->pcs;
+            }
+
+            if ($result->qty == 0 || $result->qty == '') {
+                $dailyInputDetail->qty = 1;
+            } else {
+                $dailyInputDetail->qty = $result->qty;
+            }
+
+            $dailyInputDetail->save();
+        }
+
+        return 'Daily Input merged successfully!';
     }
 }

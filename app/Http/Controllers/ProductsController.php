@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\DailyInputDetail;
 use App\Models\Products;
 use Illuminate\Http\Request;
+use League\Csv\Reader;
 
 class ProductsController extends Controller
 {
@@ -31,6 +32,91 @@ class ProductsController extends Controller
     public function create()
     {
         return view('products.add-product');
+    }
+
+    public function importProducts()
+    {
+        return view('products.import-product');
+    }
+
+    public function uploadCSV(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|mimes:csv,txt|max:2048',
+        ]);
+
+        if ($request->hasFile('file')) {
+            $file = $request->file('file');
+            $filePath = $file->getRealPath();
+
+            if (($handle = fopen($filePath, 'r')) !== false) {
+                $header = fgetcsv($handle);
+
+                while (($row = fgetcsv($handle)) !== false) {
+                    $data = array_combine($header, $row);
+
+                    Products::updateOrCreate(
+                        ['fnsku' => $data['FNSKU'] ?? null],
+                        [
+                            'msku' => $data['MSKU'] ?? null,
+                            'item' => $data['Title'] ?? null,
+                            'asin' => $data['ASIN'] ?? null,
+                            'pack' => 0,
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ]
+                    );
+                }
+
+                fclose($handle);
+
+                return redirect()->back()->with('success', 'Products have been uploaded successfully!');
+            } else {
+                return redirect()->back()->with('error', 'Unable to open the file.');
+            }
+        }
+
+        return redirect()->back()->with('error', 'Please select a valid CSV file.');
+    }
+
+    public function uploadWalmart(Request $request)
+    {
+        $request->validate([
+            'walmartFile' => 'required|mimes:csv,txt|max:2048',
+        ]);
+
+        if ($request->hasFile('walmartFile')) {
+            $file = $request->file('walmartFile');
+            $filePath = $file->getRealPath();
+
+            if (($handle = fopen($filePath, 'r')) !== false) {
+                $header = fgetcsv($handle);
+
+                while (($row = fgetcsv($handle)) !== false) {
+                    $data = array_combine($header, $row);
+
+                    Products::updateOrCreate(
+                        ['fnsku' => $data['GTIN'] ?? null],
+                        [
+                            'msku' => $data['SKU'] ?? null,
+                            'item' => $data['Item name'] ?? null,
+                            'asin' => $data['Item ID'] ?? null,
+                            'pack' => 0,
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ]
+                    );
+                }
+
+                fclose($handle);
+
+                return redirect()->back()->with('success', 'Products have been uploaded successfully!');
+            } else {
+                return redirect()->back()->with('error', 'Unable to open the file.');
+            }
+        }
+
+        return redirect()->back()->with('error', 'Please select a valid CSV file.');
     }
 
     /**

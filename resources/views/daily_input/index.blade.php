@@ -2,26 +2,13 @@
 
 @section('title', 'Daily Inputs | Prepcenter')
 
+@section('styles')
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+@endsection
+
 @section('content')
 
 <div class="container-fluid">
-                        
-    <!-- start page title -->
-    {{-- <div class="row">
-        <div class="col-12">
-            <div class="page-title-box d-sm-flex align-items-center justify-content-between">
-                <h4 class="mb-sm-0">Products Information</h4>
-
-                <div class="page-title-right">
-                    <ol class="breadcrumb m-0">
-                        <li class="breadcrumb-item"><a href="javascript: void(0);">Forms</a></li>
-                        <li class="breadcrumb-item active">Basic Elements</li>
-                    </ol>
-                </div>
-
-            </div>
-        </div>
-    </div> --}}
 
     @if (session('success'))
         <div class="alert alert-success">
@@ -34,6 +21,22 @@
             {{ session('error') }}
         </div>
     @endif
+    
+    <div class="row mb-3">
+        <form id="search_form" action="{{ route('daily-input.index') }}" method="GET" class="d-flex align-items-center">
+            @csrf
+            <div class="col-md-3 p-3">
+                <label for="date-input">
+                    Select Date Range:
+                </label>
+                <input type="text" name="daterange" id="daterange" class="form-control" value="{{ request('daterange') }}" placeholder="MM/DD/YYYY - MM/DD/YYYY">
+            </div>
+            <div class="col-md-3 d-flex pt-4 px-3">
+                <button type="submit" class="btn btn-primary me-2">Search</button>
+                <button type="button" class="btn btn-danger" id="resetButton">Clear</button>
+            </div>
+        </form>
+    </div>
 
     <div class="row">
         <div class="col-lg-12">
@@ -51,7 +54,7 @@
                     <table id="scroll-horizontal" class="table nowrap align-middle" style="width:100%">
                         <thead>
                             <tr>
-                                <th data-ordering="false">Working Date</th>
+                                <th>Working Date</th>
                                 <th>Employee Name</th>
                                 <th>Start Date</th>
                                 <th>End Date</th>
@@ -86,26 +89,6 @@
                                     <a href="{{ route('daily-input.show', $daily_input->id) }}" class="btn btn-primary p-1 m-0">
                                         <i class="ri-eye-fill align-bottom me-2"></i> View
                                     </a>
-                                    {{-- <div class="dropdown d-inline-block">
-                                        <button class="btn btn-soft-secondary btn-sm dropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                            <i class="ri-more-fill align-middle"></i>
-                                        </button>
-                                        <ul class="dropdown-menu dropdown-menu-end">
-                                            <li><a href="#!" class="dropdown-item"><i class="ri-eye-fill align-bottom me-2 text-muted"></i> View</a></li>
-                                            <li>
-                                                <a href="{{ route('daily-input.show', $daily_input->id) }}" class="dropdown-item edit-item-btn"><i class="ri-eye-fill align-bottom me-2 text-muted"></i> View</a>
-                                            </li>
-                                            <li>
-                                                <form method="POST" action="#" style="display:inline;">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="dropdown-item remove-item-btn">
-                                                        <i class="ri-delete-bin-fill align-bottom me-2 text-muted"></i> Delete
-                                                    </button>
-                                                </form>
-                                            </li>
-                                        </ul>
-                                    </div> --}}
                                 </td>
                             </tr>
                             @endforeach
@@ -123,9 +106,47 @@
 @endsection
 
 @section('script')
+<script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
 <script>
     $(document).ready(function() {
-        $('#scroll-horizontal').DataTable();
+    $('input[name="daterange"]').daterangepicker({
+        opens: 'right',
+        autoUpdateInput: false,
+        locale: {
+            cancelLabel: 'Clear'
+        }
+    }, function(start, end) {
+        $('input[name="daterange"]').val(start.format('MM/DD/YYYY') + ' - ' + end.format('MM/DD/YYYY'));
+
+        $('input[name="start_date"]').remove();
+        $('input[name="end_date"]').remove();
+
+        $('<input>').attr({
+            type: 'hidden',
+            name: 'start_date',
+            value: start.format('YYYY-MM-DD')
+        }).appendTo('#search_form');
+
+        $('<input>').attr({
+            type: 'hidden',
+            name: 'end_date',
+            value: end.format('YYYY-MM-DD')
+        }).appendTo('#search_form');
     });
+
+    $('#resetButton').click(function() {
+        $('#daterange').val('');
+        $('input[name="start_date"]').remove();
+        $('input[name="end_date"]').remove();
+        window.location.href = "{{ route('daily-input.index') }}";
+    });
+
+    $('#scroll-horizontal').DataTable({
+        "ordering": false // Disables sorting for all columns
+    });
+});
+
 </script>
 @endsection

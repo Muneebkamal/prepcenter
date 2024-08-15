@@ -42,7 +42,7 @@
                                 @enderror
                             </div>
                             <div class="col-md-6 mt-2">
-                                <input type="text" name="msku" class="form-control" placeholder="MSKU">
+                                <input type="text" name="msku" class="form-control" placeholder="MSKU / SKU">
                                 @error('msku')
                                     <div class="invalid-feedback">
                                         {{ $message }}
@@ -58,7 +58,7 @@
                                 @enderror
                             </div>
                             <div class="col-md-6 mt-2">
-                                <input type="text" name="fnsku" class="form-control" placeholder="FNSKU">
+                                <input type="text" name="fnsku" class="form-control" placeholder="FNSKU / GTIN">
                                 @error('fnsku')
                                     <div class="invalid-feedback">
                                         {{ $message }}

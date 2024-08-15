@@ -104,33 +104,14 @@
                                 @endphp
                                 <td>
                                     <div class="d-flex">
-                                        <a data-id="{{ $detail->id }}" data-pack="{{ $detail->pack }}" data-qty="{{ $detail->qty }}" data-name="{{ $detail->item }}" data-bs-toggle="modal" data-bs-target="#editmodal" class="btn btn-success edit-item-btn me-1"><i class="ri-pencil-fill align-bottom me-2"></i> Edit</a>
+                                        <a data-id="{{ $detail->id }}" data-pack="{{ $detail->pack }}" data-qty="{{ $detail->qty }}" data-name="{{ $detail->product->item }}" data-fnsku="{{ $detail->fnsku }}" data-bs-toggle="modal" data-bs-target="#editmodal" class="d-flex btn btn-success edit-item-btn me-1"><i class="ri-pencil-fill align-bottom me-2"></i> Edit</a>
                                         <form method="POST" action="{{ route('daily.input.detail.delete', $detail->id) }}" style="display:inline;">
                                             @csrf
-                                            <button type="submit" class="btn btn-danger remove-item-btn">
+                                            <button type="submit" class="d-flex btn btn-danger remove-item-btn">
                                                 <i class="ri-delete-bin-fill align-bottom me-2"></i> Delete
                                             </button>
                                         </form>
                                     </div>
-                                    {{-- <div class="dropdown d-inline-block">
-                                        <button class="btn btn-soft-secondary btn-sm dropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                            <i class="ri-more-fill align-middle"></i>
-                                        </button>
-                                        <ul class="dropdown-menu dropdown-menu-end">
-                                            <li><a href="#!" class="dropdown-item"><i class="ri-eye-fill align-bottom me-2 text-muted"></i> View</a></li>
-                                            <li>
-                                                <a data-id="{{ $detail->id }}" data-pack="{{ $detail->pack }}" data-qty="{{ $detail->qty }}" data-name="{{ $detail->item }}" data-bs-toggle="modal" data-bs-target="#editmodal" class="dropdown-item edit-item-btn"><i class="ri-pencil-fill align-bottom me-2 text-muted"></i> Edit</a>
-                                            </li>
-                                            <li>
-                                                <form method="POST" action="{{ route('daily.input.detail.delete', $detail->id) }}" style="display:inline;">
-                                                    @csrf
-                                                    <button type="submit" class="dropdown-item remove-item-btn">
-                                                        <i class="ri-delete-bin-fill align-bottom me-2 text-muted"></i> Delete
-                                                    </button>
-                                                </form>
-                                            </li>
-                                        </ul>
-                                    </div> --}}
                                 </td>
                             </tr>
                             @endforeach
@@ -165,7 +146,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 overflow-hidden">
             <div class="modal-header p-3">
-                <h4 class="card-title mb-0">Update QTY Daily Input FNSKU = ()</h4>
+                <h4 class="card-title mb-0">Update QTY Daily Input FNSKU/GTIN = (<span id="fnsku"></span>)</h4>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -207,11 +188,13 @@
             var pack = $(this).data('pack');
             var qty = $(this).data('qty');
             var name = $(this).data('name');
+            var fnsku = $(this).data('fnsku');
             var detail_id = $(this).data('id');
 
             $('#edit_pack').val(pack);
             $('#edit_qty').val(qty);
             $('#name').text(name);
+            $('#fnsku').text(fnsku);
             $('#detail_id').val(detail_id);
         });
 

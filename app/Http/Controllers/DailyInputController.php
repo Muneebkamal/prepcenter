@@ -4,19 +4,21 @@ namespace App\Http\Controllers;
 
 use App\Models\DailyInputDetail;
 use App\Models\DailyInputs;
+use App\Models\Department;
 use App\Models\Products;
 use App\Models\SystemSetting;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rules\Exists;
 
 class DailyInputController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         $daily_inputs = DailyInputs::with('user')
         ->leftJoinSub(
@@ -27,11 +29,19 @@ class DailyInputController extends Controller
             'daily_inputs.id',
             'details_sum.daily_input_id'
         )
-        ->select('daily_inputs.*', 'details_sum.total_qty')
-        ->orderBy('id', 'DESC')
-        ->get();
+        ->select('daily_inputs.*', 'details_sum.total_qty');
 
-        return view('daily_input.index', compact('daily_inputs'));
+        // Retrieve the start_date and end_date from the request
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+
+        // Apply the date range filter if both dates are provided
+        if ($startDate && $endDate) {
+            $daily_inputs->whereBetween('date', [$startDate, $endDate]);
+        }
+
+        $daily_inputs = $daily_inputs->orderBy('id', 'DESC')->get();
+        return view('daily_input.index', compact('daily_inputs', 'startDate', 'endDate'));
     }
 
     public function reportByEmployee(Request $request)
@@ -101,6 +111,32 @@ class DailyInputController extends Controller
         $report_by_employees = $query->orderBy('id', 'DESC')->get();
         return view('report_by_employee.index', compact('report_by_employees', 'employees'));
     }
+
+    public function dashboard()
+    {
+        $weekStartDay = SystemSetting::first()->week_started_day ?? 6;
+
+        $query = DailyInputs::with('user')
+            ->leftJoinSub(
+                DB::table('daily_input_details')
+                    ->select('daily_input_id', DB::raw('COALESCE(SUM(qty), 0) as total_qty'))
+                    ->groupBy('daily_input_id'),
+                'details_sum',
+                'daily_inputs.id',
+                'details_sum.daily_input_id'
+            )
+            ->select('daily_inputs.*', 'details_sum.total_qty');
+
+            $currentDayOfWeek = now()->dayOfWeekIso;
+            $startOfWeek = now()->startOfWeek()->subDays(($currentDayOfWeek - $weekStartDay + 7) % 7)->startOfDay();
+            $endOfWeek = $startOfWeek->copy()->addDays(6)->endOfDay();
+            $query->whereBetween('daily_inputs.date', [$startOfWeek, $endOfWeek]);
+
+            $report_by_times = $query->orderBy('id', 'DESC')->get();
+
+        return view('dashboard', compact('report_by_times'));
+    }
+
 
     public function reportByTime(Request $request)
     {
@@ -199,6 +235,7 @@ class DailyInputController extends Controller
     public function systemSetting(Request $request)
     {
         $setting = SystemSetting::first();
+        $departments = Department::all();
         
         if ($request->isMethod('post')) {
             $request->validate([
@@ -209,17 +246,36 @@ class DailyInputController extends Controller
                 $setting->week_started_day = $request->day;
                 $setting->save();
 
-                return view('system-setting.index', compact('setting'))->with('success', 'Day Updated Successfully');
+                return view('system-setting.index', compact('setting', 'departments'))->with('success', 'Day Updated Successfully');
             } else {
                 $started_day = new SystemSetting;
                 $started_day->week_started_day = $request->day;
                 $started_day->save();
 
-                return view('system-setting.index', compact('setting'))->with('success', 'Day Added Successfully');
+                return view('system-setting.index', compact('setting', 'departments'))->with('success', 'Day Added Successfully');
             }
         } else {
-            return view('system-setting.index', compact('setting'));
+            return view('system-setting.index', compact('setting', 'departments'));
         }
+    }
+
+    public function depAdd(Request $request)
+    {   
+        $edit_id = $request->edit_id;
+        $dep_id = Department::where('id', $edit_id)->first();
+        
+        if ($dep_id) {
+            $dep_id->dep_name = $request->edit_dep;
+            $dep_id->save();
+        }else{
+            $department = new Department;
+            $department->dep_name = $request->department;
+            $department->save();
+        }
+        
+
+        $departments = Department::all();
+        return view('system-setting.index', compact('departments'))->with('success', 'Department Add Successfully');
     }
 
     /**
@@ -286,7 +342,7 @@ class DailyInputController extends Controller
             $detail_update->fnsku = $request->fnsku;
             $detail_update->qty = $new_qty;
             $detail_update->pack = $request->pack;
-            $product = Products::where('fnsku', 'like', '%' . $fnsku_value . '%')->first();
+            $product = Products::where('fnsku', $fnsku_value)->first();
             $product->item = $request->item;
             $product->pack = $request->pack;
             $detail_update->save();
@@ -345,7 +401,7 @@ class DailyInputController extends Controller
     public function checkFnsku(Request $request)
     {
         $fnsku = $request->fnsku;
-        $product =  Products::where('fnsku', 'like', '%' . $fnsku . '%')->first();
+        $product =  Products::where('fnsku', $fnsku)->first();
         
         if ($product) {
             return response()->json([

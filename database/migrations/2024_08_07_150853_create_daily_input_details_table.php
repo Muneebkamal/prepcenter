@@ -16,8 +16,8 @@ return new class extends Migration
             $table->integer('daily_input_id');
             $table->string('fnsku')->nullable();
             // $table->string('item')->nullable();
-            $table->integer('qty')->default(0);
-            $table->integer('pack')->default(0);
+            $table->integer('qty')->default(1);
+            $table->integer('pack')->default(1);
             $table->softDeletes();
             $table->timestamps();
         });
