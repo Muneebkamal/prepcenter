@@ -53,6 +53,11 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/daily-input-detail-delete{id}', [DailyInputController::class, 'delete'])->name('daily.input.detail.delete');
 
     Route::get('/import/products', [ProductsController::class, 'importProducts'])->name('import.products');
+
+    Route::get('/delete-duplicate', [ProductsController::class, 'deleteDuplicate'])->name('delete-duplicate');
+    
+    Route::get('/import/table', [ProductsController::class, 'importTable'])->name('import.table');
+
     Route::post('/import/csv', [ProductsController::class, 'uploadCSV'])->name('import.csv');
     Route::post('/import/walmart', [ProductsController::class, 'uploadWalmart'])->name('import.walmart');
 

@@ -32,6 +32,7 @@
                         </span>
                     </button>
 
+                    
                     <!-- App Search-->
                     {{-- <form class="app-search d-none d-md-block">
                         <div class="position-relative">
@@ -117,8 +118,17 @@
                             </div>
                         </div>
                     </form> --}}
-                </div>
 
+                    @if( request()->is('daily-input'))
+                        <div class="d-flex align-items-center ms-2 mt-1">
+                            <div class="input-page">
+                                <h4>Daily Input</h4>
+                            </div>
+                        </div>
+                    @endif
+
+                </div>
+                
                 <div class="d-flex align-items-center">
 
                     {{-- <div class="dropdown d-md-none topbar-head-dropdown header-item">

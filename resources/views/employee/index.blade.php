@@ -36,7 +36,7 @@
     @endif
 
     <div class="row">
-        <div class="col-lg-12">
+        <div class="col-lg-12 p-0">
             <div class="card">
                 <div class="card-header d-flex justify-content-between">
                     <h5 class="card-title mb-0">Employees</h5>
@@ -45,36 +45,36 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    <table id="example1" class="table table-bordered dt-responsive nowrap table-striped align-middle" style="width:100%">
+                    <table id="example1" class="table dt-responsive nowrap table-striped align-middle" style="width:100%">
                         <thead>
                             <tr>
-                                <th data-ordering="false">Full Name</th>
-                                <th>Department</th>
-                                <th>Privilege</th>
-                                <th>Status</th>
-                                <th>Action</th>
+                                <th><small>Full Name</small></th>
+                                <th><small>Department</small></th>
+                                <th><small>Privilege</small></th>
+                                <th><small>Status</small></th>
+                                <th><small>Action</small></th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach ($employees as $employee)
                                 <tr>
                                     <td>
-                                        <p class="fw-bold m-0">{{ $employee->name }}</p>
-                                        <p class="m-0"><a>{{ $employee->email }}</a></p>
+                                        <small class="fw-bold m-0"><a class="text-dark text-decoration-none" href="{{ route('employees.show', $employee->id) }}">{{ $employee->name }}</a></small><br>
+                                        <small class="m-0"><a href="{{ route('employees.show', $employee->id) }}">{{ $employee->email }}</a></small>
                                     </td>
                                     <td>
-                                        <p class="m-0">
+                                        <small class="m-0">
                                             @if($employee->departments)
                                                 {{ $employee->departments->dep_name ?? '--' }}
                                             @else
                                                 No Department
                                             @endif
-                                        </p>
+                                        </small>
                                     <td>
                                         @if($employee->role == 1)
-                                            <p class="m-0">Manager</p>
+                                            <small class="m-0">Manager</small>
                                         @elseif($employee->role == 2)
-                                            <p class="m-0">User</p>
+                                            <small class="m-0">User</small>
                                         @endif
                                     </td>
                                     <td>
@@ -86,12 +86,12 @@
                                     </td>
                                     <td>
                                         <div class="d-flex">
-                                            <a href="{{ route('employees.show', $employee->id) }}" class="btn btn-success edit-item-btn me-1"><i class="ri-pencil-fill align-bottom me-2"></i> Edit</a>
+                                            <a href="{{ route('employees.show', $employee->id) }}" class="btn btn-success edit-item-btn me-1 p-1"><i class="ri-pencil-fill align-bottom"></i> Edit</a>
                                             <form method="POST" action="{{ route('employees.destroy', $employee->id) }}" style="display:inline;">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="btn btn-danger remove-item-btn">
-                                                    <i class="ri-delete-bin-fill align-bottom me-2"></i> Delete
+                                                <button type="submit" class="btn btn-danger remove-item-btn p-1">
+                                                    <i class="ri-delete-bin-fill align-bottom"></i> Delete
                                                 </button>
                                             </form>
                                         </div>
@@ -134,7 +134,9 @@
 @section('script')
 <script>
     $(document).ready(function() {
-        $('#example1').DataTable();
+        $('#example1').DataTable({
+            "ordering": false
+        });
     });
 </script>
 @endsection

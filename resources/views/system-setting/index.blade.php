@@ -11,6 +11,17 @@
             <h5 class="mb-3">System Setting</h5>
             <div class="card">
                 <div class="card-body">
+                    @if (session('success'))
+                        <div class="alert alert-success" id="success-alert">
+                            {{ session('success') }}
+                        </div>
+                    @endif
+
+                    @if (session('error'))
+                        <div class="alert alert-danger" id="error-alert">
+                            {{ session('error') }}
+                        </div>
+                    @endif
                     <!-- Nav tabs -->
                     <ul class="nav nav-pills animation-nav nav-justified gap-2 mb-3" role="tablist">
                         <li class="nav-item waves-effect waves-light">
@@ -26,17 +37,6 @@
                     </ul>
                     <div class="tab-content text-muted">
                         <div class="tab-pane active" id="animation-home" role="tabpanel">
-                            @if (session('success'))
-                                <div class="alert alert-success">
-                                    {{ session('success') }}
-                                </div>
-                            @endif
-
-                            @if (session('error'))
-                                <div class="alert alert-danger">
-                                    {{ session('error') }}
-                                </div>
-                            @endif
                             <div class="row mb-3">
                                 <form id="search_form" action="{{ route('system.setting.add') }}" method="POST" class="d-flex align-items-center">
                                     @csrf
@@ -148,6 +148,15 @@
 
             $('#edit_id').val(id);
             $('#edit_dep').val(dep);
+        });
+
+        $('#success-alert').each(function() {
+            setTimeout(() => $(this).fadeOut('slow'), 2000); // 3000 milliseconds = 3 seconds
+        });
+
+        // Set a timeout for the error alert
+        $('#error-alert').each(function() {
+            setTimeout(() => $(this).fadeOut('slow'), 2000); // 3000 milliseconds = 3 seconds
         });
     })
 </script>

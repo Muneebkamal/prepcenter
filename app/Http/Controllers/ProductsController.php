@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\DailyInputDetail;
 use App\Models\Products;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use League\Csv\Reader;
 
 class ProductsController extends Controller
@@ -117,6 +118,30 @@ class ProductsController extends Controller
         }
 
         return redirect()->back()->with('error', 'Please select a valid CSV file.');
+    }
+
+    public function importTable()
+    {
+        return view('products.import-table');
+    }
+
+    public function deleteDuplicate(){
+        $duplicateFnskus = Products::select('fnsku')
+        ->groupBy('fnsku')
+        ->havingRaw('COUNT(fnsku) > 1')
+        ->pluck('fnsku');
+        // dd($duplicateFnskus);
+        $latestIds = Products::select(DB::raw('MAX(id) as id'))
+        ->whereIn('fnsku', $duplicateFnskus)
+        ->groupBy('fnsku')
+        ->pluck('id');
+
+        $idsToDelete = Products::whereIn('fnsku', $duplicateFnskus)
+        ->whereNotIn('id', $latestIds)
+        ->pluck('id');
+        // dd($idsToDelete);
+        Products::whereIn('id', $idsToDelete)->delete();
+        return true;
     }
 
     /**

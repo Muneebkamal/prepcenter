@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Add Daily Input | Prepcenter')
+@section('title', 'Edit Daily Input | Prepcenter')
 
 @section('content')
 
@@ -27,18 +27,19 @@
         <div class="col-lg-12">
             <div class="card">
                 <div class="card-header align-items-center d-flex">
-                    <h4 class="card-title mb-0 flex-grow-1">Add Daily Input</h4>
+                    <h4 class="card-title mb-0 flex-grow-1">Edit Daily Input</h4>
                 </div><!-- end card header -->
                 <div class="card-body">
-                    <form id="dailyInput">
+                    <form id="dailyInputEdit">
                         @csrf
+                        @method('PUT')
                         <div class="row">
+                            <input type="hidden" name="id" value="{{ $daily_input->id }}">
                             <div class="col-md-6 mt-2">
                                 <label for="">Employee</label>
-                                <select name="employee_id" class="form-select" required>
-                                    <option disabled selected>- select employee -</option>
+                                <select name="employee_id" class="form-select" disabled>
                                     @foreach($employees as $employee)
-                                    <option value="{{ $employee->id }}">{{ $employee->name }}</option>
+                                    <option value="{{ $employee->id }}" {{ $daily_input->employee_id == $employee->id ? 'selected' : '' }} >{{ $employee->name }}</option>
                                     @endforeach
                                 </select>
                                 @error('employee')
@@ -49,7 +50,7 @@
                             </div>
                             <div class="col-md-6 mt-2">
                                 <label for="">Date</label>
-                                <input type="date" name="date" class="form-control" value="{{ now()->format('Y-m-d') }}" required>
+                                <input type="date" name="date" class="form-control" value="{{ $daily_input->date }}" readonly>
                                 @error('date')
                                     <div class="invalid-feedback">
                                         {{ $message }}
@@ -58,7 +59,7 @@
                             </div>
                             <div class="col-md-6 mt-2">
                                 <label for="">Start Time</label>
-                                <input type="time" value="09:00" name="start_time" class="form-control" required>
+                                <input type="time" name="start_time" value="{{ $daily_input->start_time }}" class="form-control" required>
                                 @error('start_time')
                                     <div class="invalid-feedback">
                                         {{ $message }}
@@ -67,7 +68,7 @@
                             </div>
                             <div class="col-md-6 mt-2">
                                 <label for="">End Time</label>
-                                <input type="time" value="17:00" name="end_time" class="form-control" required>
+                                <input type="time" name="end_time" value="{{ $daily_input->end_time }}" class="form-control" required>
                                 @error('end_time')
                                     <div class="invalid-feedback">
                                         {{ $message }}
@@ -98,18 +99,18 @@
 <script>
      $(document).ready(function() {
         $('#resetButton').click(function() {
-            $('#dailyInput')[0].reset(); // [0] is used to access the DOM element
+            $('#dailyInputEdit')[0].reset(); // [0] is used to access the DOM element
         });
 
-        $('#dailyInput').on('submit', function(e) {
+        $('#dailyInputEdit').on('submit', function(e) {
             e.preventDefault();
 
             // Create FormData object
             let formData = new FormData(this);
+            let id = $('input[name="id"]').val();
 
-            // Send AJAX request
             $.ajax({
-                url: "{{ route('daily-input.store') }}",
+                url: "{{ route('daily-input.update', 'id') }}".replace('id', id),
                 type: 'POST',
                 data: formData,
                 contentType: false,

@@ -22,6 +22,7 @@ return new class extends Migration
             $table->double('total_packing_cost')->default(0);
             $table->double('total_item_hour')->default(0);
             $table->double('rate')->default(0);
+            $table->softDeletes();
             $table->timestamps();
         });
     }

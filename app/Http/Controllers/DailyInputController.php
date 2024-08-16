@@ -20,6 +20,8 @@ class DailyInputController extends Controller
      */
     public function index(Request $request)
     {
+        $userIds = DB::table('users')->pluck('id');
+
         $daily_inputs = DailyInputs::with('user')
         ->leftJoinSub(
             DB::table('daily_input_details')
@@ -29,8 +31,8 @@ class DailyInputController extends Controller
             'daily_inputs.id',
             'details_sum.daily_input_id'
         )
-        ->select('daily_inputs.*', 'details_sum.total_qty');
-
+        ->select('daily_inputs.*', 'details_sum.total_qty')
+        ->whereIn('daily_inputs.employee_id', $userIds);
         // Retrieve the start_date and end_date from the request
         $startDate = $request->input('start_date');
         $endDate = $request->input('end_date');
@@ -267,15 +269,17 @@ class DailyInputController extends Controller
         if ($dep_id) {
             $dep_id->dep_name = $request->edit_dep;
             $dep_id->save();
+
+            return redirect()->route('system.setting')->with('success', 'Department Update Successfully');
         }else{
             $department = new Department;
             $department->dep_name = $request->department;
             $department->save();
-        }
-        
 
-        $departments = Department::all();
-        return view('system-setting.index', compact('departments'))->with('success', 'Department Add Successfully');
+            $departments = Department::all();
+            return redirect()->route('system.setting')->with('success', 'Department Add Successfully');
+        }
+
     }
 
     /**
@@ -344,6 +348,7 @@ class DailyInputController extends Controller
             $detail_update->pack = $request->pack;
             $product = Products::where('fnsku', $fnsku_value)->first();
             $product->item = $request->item;
+            
             $product->pack = $request->pack;
             $detail_update->save();
             $product->save();
@@ -351,16 +356,26 @@ class DailyInputController extends Controller
             $detail = new DailyInputDetail;
             $detail->daily_input_id = $daily_input_id;
             $detail->fnsku = $request->fnsku;
-            $detail->qty = $request->qty;
-            $detail->pack = $request->pack;
+            if($request->qty != null){
+                $detail->qty = $request->qty;
+            }
+            if($request->pack != null){
+                $detail->pack = $request->pack;
+            }
 
             $new_product = new Products;
             $new_product->fnsku = $request->fnsku;
-            $new_product->item = $request->item;
-            $new_product->pack = $request->pack;
+            if($request->item ==null || $request->item == ""){
+                $new_product->item = "Tempory Product Name";
+            }else{
+                $new_product->item = $request->item;
+            }
+            if($request->pack != null){
+                $new_product->pack = $request->pack;
+            }
 
             $detail->save();
-            $new_product->save(); 
+            $new_product->save();
         }
 
 
@@ -430,7 +445,7 @@ class DailyInputController extends Controller
     public function show(string $id)
     {
         $daily_input = DailyInputs::where('id', $id)->with('user')->first();
-        $employees = User::where('status', 'active')->get();
+        $employees = User::where('status', '0')->get();
         $daily_input_details = DailyInputDetail::with('product')->where('daily_input_id', $id)->get();
         return view('daily_input.edit-daily-input', compact('daily_input','employees','daily_input_details'));
     }
@@ -440,7 +455,9 @@ class DailyInputController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        $daily_input = DailyInputs::where('id', $id)->first();
+        $employees = User::where('status', '0')->get();
+        return view('daily_input.edit-time', compact('daily_input','employees'));
     }
 
     /**
@@ -448,14 +465,32 @@ class DailyInputController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $edit_daily_input = DailyInputs::find($id);
+
+        if (!$edit_daily_input) {
+            return response()->json(['success' => false, 'message' => 'Record not found.'], 404);
+        }
+
+        $edit_daily_input->start_time = $request->input('start_time');
+        $edit_daily_input->end_time = $request->input('end_time');
+        $edit_daily_input->save();
+
+        return response()->json([
+            'success' => true,
+            'id' => $edit_daily_input->id,
+            'message' => 'Daily Input Time updated successfully!'
+        ]);
     }
+
 
     /**
      * Remove the specified resource from storage.
      */
     public function destroy(string $id)
     {
-        //
+        $daily_input_delete = DailyInputs::find($id);
+        $daily_input_delete->delete();
+
+        return redirect()->back()->with('success', 'Record Deleted Successfully!');
     }
 }

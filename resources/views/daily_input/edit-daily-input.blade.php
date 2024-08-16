@@ -6,29 +6,105 @@
 
 <div class="container-fluid">
 
+    @if (session('success'))
+        <div class="alert alert-success" id="success-alert">
+            {{ session('success') }}
+        </div>
+    @endif
+
+    @if (session('error'))
+        <div class="alert alert-danger" id="error-alert">
+            {{ session('error') }}
+        </div>
+    @endif
+
     <div class="row">
         <div class="col-md-12">
             <div class="card">
                 <div class="card-header">
-                    <p class="fw-bold m-0">Employee ID: <span class="ms-3">{{ $daily_input->id }}</span></p>
-                    <p class="fw-bold m-0">Employee Name: <span class="ms-3">{{ $daily_input->user->name ?? 'N/A'}}</span></p>
+                    <h4 class="card-title mb-0 flex-grow-1">Daily Input Detail ( {{ $daily_input->id }} | {{ $daily_input->user->name ?? 'N/A' }} )</h4>
                 </div><!-- end card header -->
                 <div class="card-body">
                     <div class="row">
-                        <div class="col-md-12">
-                            <div class="content">
-                                <p>Start Time: <span class="ms-3">{{ $daily_input->start_time }}</span></p>
-                                <p>End Time: <span class="ms-3">{{ $daily_input->end_time }}</span></p>
-                                <p>Rate / Hour: <span class="ms-3">{{ $daily_input->rate }}</span></p>
+                        <div class="col-md-6" style="border-right: 1px solid #ddd; padding-right: 20px;">
+                            <table class="table  table-striped align-middle" style="width:100%">
+                                <tr>
+                                    <td>Employee ID</td>
+                                    <td>:<span class="ms-2">{{ $daily_input->id }}</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Employee Name</td>
+                                    <td>:<span class="ms-2">{{ $daily_input->user->name ?? 'N/A' }}</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Start Time</td>
+                                    <td>:<span class="ms-2">{{ $daily_input->start_time }}</span>
+                                        <a href="{{ route('daily-input.edit', $daily_input->id) }}">(<i class="ri-pencil-fill align-bottom"></i> Edit)</a>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>End Time</td>
+                                    <td>:<span class="ms-2">{{ $daily_input->end_time }}</span>
+                                        <a href="{{ route('daily-input.edit', $daily_input->id) }}">(<i class="ri-pencil-fill align-bottom"></i> Edit)</a>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Rate / Hour</td>
+                                    <td>:<span class="ms-2">${{ $daily_input->rate }}</span></td>
+                                </tr>
                                 @php
                                     $quantity = 0;
                                     $totalTimeInSeconds = $daily_input->total_time_in_sec;
                                     $hours = intdiv($totalTimeInSeconds, 3600); // Total hours
                                     $minutes = intdiv($totalTimeInSeconds % 3600, 60); // Remaining minutes
                                 @endphp
-                                <p>Total Working Time:  <span class="ms-3">{{ $hours }} H {{ $minutes }} m</span></p>
-                                <p>Total Paid: <span class="ms-3">{{ $daily_input->total_paid }}</span></p>
-                            </div>
+                                <tr>
+                                    <td>Total Working Time</td>
+                                    <td>:<span class="ms-2">{{ $hours }} H {{ $minutes }} m</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Total Paid</td>
+                                    <td>:<span class="ms-2">${{ $daily_input->total_paid }}</span></td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-4">
+                            @php
+                                $qtys = 0;
+                            @endphp
+                            @foreach($daily_input_details as $detail)
+                                @php
+                                    $qtys += $detail->qty;
+                                @endphp
+                            @endforeach
+                            @if(Auth::user()->role == 1)
+                                @if($daily_input_details->isNotEmpty())
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <table class="table  table-striped align-middle" style="width:100%">
+                                                <tr>
+                                                    <td>Total QTY</td>
+                                                    <td><span class="ms-2">{{ $qtys }}</span></td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Total Packing Cost Per Item</td>
+                                                    <td><span class="ms-2">${{ number_format($daily_input->total_packing_cost, 2) }}</span></td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Total Item/Hour</td>
+                                                    <td><span class="ms-2">{{ number_format($daily_input->total_item_hour, 2) }}</span></td>
+                                                </tr>
+                                            </table>
+
+                                            {{-- <div class="content">
+                                                <p class="fw-bold me-5">Total QTY: <span class="ms-3">{{ $qtys }}</span></p>
+                                                <p class="fw-bold me-5">Total packing Cost per Item: <span class="ms-3">${{ number_format($daily_input->total_packing_cost, 2) }}</span></p>
+                                                <p class="fw-bold me-5">Total Item / Hour: <span class="ms-3">{{ number_format($daily_input->total_item_hour, 2) }}</span></p>
+                                            </div> --}}
+                                        </div>
+                                    </div>
+                                @endif
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -51,7 +127,7 @@
                                 <input class="form-control" type="text" placeholder="FNSKU/GTIN" id="fnsku-input" name="fnsku" required>
                             </div>
                             <div class="col-md-6 mt-2">
-                                <input type="text" id="item" name="item" class="form-control" placeholder="Item Name" required>
+                                <input type="text" id="item" name="item" class="form-control" placeholder="Item Name">
                             </div>
                             <div class="col-md-6 mt-2">
                                 <input type="number" name="qty" class="form-control" placeholder="QTY">
@@ -117,14 +193,14 @@
                             @endforeach
                         </tbody>
                     </table>
-                    @if(Auth::user()->role == 2)
+                    @if(Auth::user()->role == 1)
                         @if($daily_input_details->isNotEmpty())
                             <div class="row mt-4">
                                 <div class="col-md-12 d-flex justify-content-end">
                                     <div class="content me-4">
                                         <p class="fw-bold me-5">Total QTY: <span class="ms-3">{{ $quantity }}</span></p>
-                                        <p class="fw-bold me-5">Total packing Cost per Item: <span class="ms-3">{{ number_format($daily_input->total_packing_cost, 4) }}</span></p>
-                                        <p class="fw-bold me-5">Total Item / Hour: <span class="ms-3">{{ number_format($daily_input->total_item_hour, 4) }}</span></p>
+                                        <p class="fw-bold me-5">Total packing Cost per Item: <span class="ms-3">${{ number_format($daily_input->total_packing_cost, 2) }}</span></p>
+                                        <p class="fw-bold me-5">Total Item / Hour: <span class="ms-3">{{ number_format($daily_input->total_item_hour, 2) }}</span></p>
                                     </div>
                                 </div>
                             </div>
@@ -182,6 +258,15 @@
 @section('script')
 <script>
     $(document).ready(function() {
+
+        $('#success-alert').each(function() {
+            setTimeout(() => $(this).fadeOut('slow'), 2000); 
+        });
+
+        // Set a timeout for the error alert
+        $('#error-alert').each(function() {
+            setTimeout(() => $(this).fadeOut('slow'), 2000); 
+        });
 
         // Populate modal fields with data attributes
         $('.edit-item-btn').on('click', function() {

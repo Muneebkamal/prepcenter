@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\DailyInputDetail;
 use App\Models\DailyInputs;
 use App\Models\Department;
 use App\Models\Products;
@@ -236,7 +237,7 @@ class EmployeeController extends Controller
             $product->msku = $result->msku;
             $product->asin = $result->asin;
             $product->fnsku = $result->fnsku;
-            if ($result->pcs == 0 || $result->pcs == '') {
+            if ($result->pcs <= 0 || $result->pcs == '') {
                 $product->pack = 1;
             } else {
                 $product->pack = $result->pcs;
@@ -282,7 +283,7 @@ class EmployeeController extends Controller
         // dd($results);
         foreach ($results as $result) {
 
-            $dailyInputDetail = new DailyInputs;
+            $dailyInputDetail = new DailyInputDetail;
             $dailyInputDetail->id = $result->id;
             $dailyInputDetail->daily_input_id = $result->id_daily_input;
             $dailyInputDetail->fnsku = $result->fnsku;
