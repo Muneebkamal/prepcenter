@@ -495,11 +495,28 @@ class DailyInputController extends Controller
 
     public function detailEdit(Request $request, string $id)
     {
+        
         $edit_detail = DailyInputDetail::where('id', $id)->first();
         $edit_detail->qty = $request->edit_qty;
         $edit_detail->pack = $request->edit_pack;
         
         $edit_detail->save();
+
+        $total_qty = DailyInputDetail::where('daily_input_id', $edit_detail->daily_input_id)->sum('qty');
+        $dailyInput = DailyInputs::where('id', $edit_detail->daily_input_id)->first();
+        if ($dailyInput) {
+            $totalPaid = $dailyInput->total_paid;
+            $totalTimeInSeconds = $dailyInput->total_time_in_sec;
+            $totalTimeHours = $totalTimeInSeconds / 3600;
+        }
+
+        $total_packing_cost_per_item = $totalPaid / $total_qty;
+        $total_item_hour = $total_qty / number_format($totalTimeHours, 2) ;
+        
+        $dailyInput->total_item_hour = number_format($total_item_hour, 5);
+        $dailyInput->total_packing_cost = $total_packing_cost_per_item;
+        $dailyInput->save();
+
         return response()->json([
             'success' => 'Product added Successful!',
         ]);
