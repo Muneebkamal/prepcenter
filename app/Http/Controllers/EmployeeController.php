@@ -100,7 +100,7 @@ class EmployeeController extends Controller
             // 'last_name' => 'required|string|max:255',
             'phone_no' => 'nullable|string|max:20',
             'role' => 'required|string|max:255',
-            'rate' => 'nullable|numeric'
+            // 'rate' => 'nullable|numeric'
         ]);
 
         // Concatenate first and last names
@@ -119,17 +119,17 @@ class EmployeeController extends Controller
         $employee->role = $request->role;
         $employee->department = $request->department;
         $employee->status = $request->status;
-        $employee->rate = $request->rate;
+        // $employee->rate = $request->rate;
 
-        if ($request->filled('date')) {
-            $requestDate = Carbon::parse($request->date);
-            $today = Carbon::today();
-            $dailyInputs = DailyInputs::where('date', '<=', $today)->where('date', '>=', $requestDate)->get();
-            foreach ($dailyInputs as $dailyInput) {
-                $dailyInput->rate = $request->rate;
-                $dailyInput->save(); // Save each record individually
-            }
-        }
+        // if ($request->filled('date')) {
+        //     $requestDate = Carbon::parse($request->date);
+        //     $today = Carbon::today();
+        //     $dailyInputs = DailyInputs::where('date', '<=', $today)->where('date', '>=', $requestDate)->get();
+        //     foreach ($dailyInputs as $dailyInput) {
+        //         $dailyInput->rate = $request->rate;
+        //         $dailyInput->save(); // Save each record individually
+        //     }
+        // }
 
         // Save the employee to the database
         $employee->save();
@@ -304,5 +304,24 @@ class EmployeeController extends Controller
         }
 
         return 'Daily Input merged successfully!';
+    }
+    public function emplpyeeRate(Request $request){
+        $user = User::where('id',$request->emoloye_id)->first();
+        if($user ){
+            // Extract rate_date and new_rate from the request
+            $rateDate = Carbon::parse($request->rate_date);
+            $newRate = $request->rate;
+            // Determine the current date
+            $currentDate = Carbon::now();
+            DailyInputs::where('employee_id', $user->id)
+            ->whereBetween('date', [$rateDate, $currentDate])
+            ->update(['rate' => $newRate]);
+            $user->rate = $request->rate; 
+            $user->save(); 
+             // Redirect back with a success message
+            return redirect()->back()->with('success', 'Rate updated successfully!');
+        }else{
+            return redirect()->back()->with('error', 'User Not Founded!');
+        }
     }
 }

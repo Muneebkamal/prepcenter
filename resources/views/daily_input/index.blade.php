@@ -4,6 +4,18 @@
 
 @section('styles')
 <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+
+<style>
+    .applyBtn {
+        --vz-btn-bg: var(--vz-success);
+        --vz-btn-border-color: var(--vz-success);
+        --vz-btn-hover-bg: var(--vz-success-text-emphasis);
+        --vz-btn-hover-border-color: var(--vz-success-text-emphasis);
+        --vz-btn-focus-shadow-rgb: var(--vz-success-rgb);
+        --vz-btn-active-bg: var(--vz-success-text-emphasis);
+        --vz-btn-active-border-color: var(--vz-success-text-emphasis);
+    }
+</style>
 @endsection
 
 @section('content')
@@ -30,7 +42,11 @@
                         <label for="date-input">
                             Select Date Range:
                         </label>
-                        <input type="text" name="daterange" id="daterange" class="form-control" value="{{ request('daterange') }}" placeholder="MM/DD/YYYY - MM/DD/YYYY">
+                        <div id="reportrange" class="reportrange p-2" style="background-color: white; border: var(--vz-border-width) solid var(--vz-input-border-custom); border-radius: var(--vz-border-radius);">
+                            <span></span>
+                            <b class="caret"></b>
+                        </div>
+                        <input type="hidden" id="date_range" name="date_range" />  
                     </div>
                     <div class="mt-4 d-flex">
                         <button type="submit" class="btn btn-primary me-2">Search</button>
@@ -112,14 +128,14 @@
                                 </td>
                                 <td class="d-flex">
                                     <a href="{{ route('daily-input.show', $daily_input->id) }}" class="btn btn-primary p-1 m-0 me-1">
-                                        <i class="ri-eye-fill align-bottom"></i>
+                                        <i class="ri-eye-fill align-bottom me-1"></i> View
                                     </a>
                                     @if(Auth()->user()->role == 1)
                                         <form method="POST" action="{{ route('daily-input.destroy', $daily_input->id) }}" style="display:inline;">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="d-flex btn btn-danger remove-item-btn  p-1 m-0">
-                                                <i class="ri-delete-bin-fill align-bottom"></i>
+                                                <i class="ri-delete-bin-fill align-bottom me-1"></i> Delete
                                             </button>
                                         </form>
                                     @endif
@@ -189,6 +205,46 @@
         $('#error-alert').each(function() {
             setTimeout(() => $(this).fadeOut('slow'), 2000); // 3000 milliseconds = 3 seconds
         });
+    });
+    $(function() {
+        var start = {!! json_encode( $startDate) !!};
+        var end = {!! json_encode( $endDate) !!};
+        var start = moment(start, 'YYYY-MM-DD');
+        var end = moment(end, 'YYYY-MM-DD');
+        var dynamicStartDayNumber = {!! json_encode( $weekStart) !!};
+
+        var today = moment();
+        var startOfWeek = today.clone().startOf('week').add(dynamicStartDayNumber, 'days');
+        if (startOfWeek.isAfter(today)) {
+            startOfWeek.subtract(7, 'days');
+        }
+        var endOfWeek = startOfWeek.clone().add(6, 'days');
+        var startOfLastWeek = startOfWeek.clone().subtract(7, 'days');
+        var endOfLastWeek = endOfWeek.clone().subtract(7, 'days');
+
+        function cb(start, end) {
+            $('#reportrange span').html(start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
+            $("#date_range").val(start.format('YYYY-M-D') + '_' + end.format('YYYY-M-D'));
+        }
+
+        $('#reportrange').daterangepicker({
+            startDate: start,
+            endDate: end,
+            ranges: {
+                'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                'This Week': [startOfWeek, endOfWeek],
+                'Last Week': [startOfLastWeek, endOfLastWeek],
+                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                'This Month': [moment().startOf('month'), moment().endOf('month')],
+                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')],
+                'Last 3 Months': [moment().subtract(2, 'month').startOf('month'), moment().endOf('month')],
+                'Last 6 Months': [moment().subtract(5, 'month').startOf('month'), moment().endOf('month')],
+                'This Year': [moment().startOf('year'), moment().endOf('year')],
+                'Last Year': [moment().subtract(1, 'year').startOf('year'), moment().subtract(1, 'year').endOf('year')]
+            }
+        }, cb);
+
+        cb(start, end);
     });
 
 </script>

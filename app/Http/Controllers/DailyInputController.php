@@ -26,6 +26,7 @@ class DailyInputController extends Controller
         ->leftJoinSub(
             DB::table('daily_input_details')
                 ->select('daily_input_id', DB::raw('COALESCE(SUM(qty), 0) as total_qty'))
+                ->whereNull('deleted_at')
                 ->groupBy('daily_input_id'),
             'details_sum',
             'daily_inputs.id',
@@ -34,84 +35,125 @@ class DailyInputController extends Controller
         ->select('daily_inputs.*', 'details_sum.total_qty')
         ->whereIn('daily_inputs.employee_id', $userIds);
         // Retrieve the start_date and end_date from the request
-        $startDate = $request->input('start_date');
-        $endDate = $request->input('end_date');
-
+        $startDate = null;
+        $endDate = null;
+        $dateRange = $request->input('date_range');
+        $dates = explode('_', $dateRange);
+        
+        if(count($dates) == 2) {
+            $startDate = $dates[0];
+            $endDate = $dates[1];
+        }
         // Apply the date range filter if both dates are provided
         if ($startDate && $endDate) {
             $daily_inputs->whereBetween('date', [$startDate, $endDate]);
         }
-
+        if(count($dates) == 2) {
+            $startDate = $dates[0];
+            $endDate = $dates[1];
+        }else{
+            $startDate = Carbon::today()->format('Y-m-d');
+            $endDate = $startDate;
+        }
+        $weekStart = SystemSetting::pluck('week_started_day')->first();
+        $weekStart =  $weekStart??6;
         $daily_inputs = $daily_inputs->orderBy('id', 'DESC')->get();
-        return view('daily_input.index', compact('daily_inputs', 'startDate', 'endDate'));
+        return view('daily_input.index', get_defined_vars());
     }
 
     public function reportByEmployee(Request $request)
     {
         // Retrieve all employees for the dropdown
         $employees = User::where('status', '0')->get();
-
-        // Initialize the query
-        $query = DailyInputs::with('user')
-            ->leftJoinSub(
-                DB::table('daily_input_details')
-                    ->select('daily_input_id', DB::raw('COALESCE(SUM(qty), 0) as total_qty'))
-                    ->groupBy('daily_input_id'),
-                'details_sum',
-                'daily_inputs.id',
-                'details_sum.daily_input_id'
-            )
-            ->select('daily_inputs.*', 'details_sum.total_qty');
-
-        // Determine the filter to apply, default to 'today'
-        $filterBy = $request->input('filter_by', 'today'); 
-        $weekStartDay = SystemSetting::first()->week_started_day ?? 6;
-        switch ($filterBy) {
-            case 'today':
-                $query->whereDate('daily_inputs.date', today());
-                break;
-
-            case 'custom':
-                if ($request->has('filter_date')) {
-                    $filterDate = $request->input('filter_date');
-                    $query->whereDate('daily_inputs.date', $filterDate);
-                }
-                break;
-
-            case 'last_week':
-                $startOfLastWeek = now()->subDays(7)->startOfDay();
-                $endOfLastWeek = now()->subDay()->endOfDay();
-                $query->whereBetween('daily_inputs.date', [$startOfLastWeek, $endOfLastWeek]);
-                break;
-
-            case 'last_month':
-                $startOfLastMonth = now()->subDays(30)->startOfDay();
-                $endOfLastMonth = now()->endOfDay();
-                $query->whereBetween('daily_inputs.date', [$startOfLastMonth, $endOfLastMonth]);
-                break;
-
-            case 'last_year':
-                $startOfLastYear = now()->subDays(365)->startOfDay();
-                $endOfLastYear = now()->endOfDay();
-                $query->whereBetween('daily_inputs.date', [$startOfLastYear, $endOfLastYear]);
-                break;
-
-            case 'this_week':
-                $currentDayOfWeek = now()->dayOfWeekIso;
-                $startOfWeek = now()->startOfWeek()->subDays(($currentDayOfWeek - $weekStartDay + 7) % 7)->startOfDay();
-                $endOfWeek = $startOfWeek->copy()->addDays(6)->endOfDay();
-                $query->whereBetween('daily_inputs.date', [$startOfWeek, $endOfWeek]);
-                break;
-                
+        // $dateRange = $request->input('date_range');
+        // $dates = explode('_', $dateRange);
+        // $startDate = $dates[0];
+        // $endDate = $dates[1];
+        $dateRange = $request->input('date_range');
+        $dates = explode('_', $dateRange);
+        
+        if(count($dates) == 2) {
+            $startDate = $dates[0];
+            $endDate = $dates[1];
+        } else {
+            // Default to today's date if date range is null or not properly set
+            $startDate = Carbon::today()->format('Y-m-d');
+            $endDate = $startDate;
         }
+        $query = DailyInputs::with('user')
+        ->leftJoinSub(
+            DB::table('daily_input_details')
+                ->select('daily_input_id', DB::raw('COALESCE(SUM(qty), 0) as total_qty'))
+                ->whereNull('deleted_at')
+                ->groupBy('daily_input_id'),
+            'details_sum',
+            'daily_inputs.id',
+            'details_sum.daily_input_id'
+        )
+        ->select('daily_inputs.*', 'details_sum.total_qty');
+        // Query the user table
+        $query = DailyInputs::with('user')
+        ->leftJoinSub(
+            DB::table('daily_input_details')
+                ->select('daily_input_id', DB::raw('COALESCE(SUM(qty), 0) as total_qty'))
+                ->whereNull('deleted_at')
+                ->groupBy('daily_input_id'),
+            'details_sum',
+            'daily_inputs.id',
+            'details_sum.daily_input_id'
+        )
+        ->select('daily_inputs.*', 'details_sum.total_qty');
+        $query->whereBetween('date', [$startDate, $endDate]);
+        // Determine the filter to apply, default to 'today'
+        // $filterBy = $request->input('filter_by', 'today'); 
+        // $weekStartDay = SystemSetting::first()->week_started_day ?? 6;
+        // switch ($filterBy) {
+        //     case 'today':
+        //         $query->whereDate('daily_inputs.date', today());
+        //         break;
+
+        //     case 'custom':
+        //         if ($request->has('filter_date')) {
+        //             $filterDate = $request->input('filter_date');
+        //             $query->whereDate('daily_inputs.date', $filterDate);
+        //         }
+        //         break;
+
+        //     case 'last_week':
+        //         $startOfLastWeek = now()->subDays(7)->startOfDay();
+        //         $endOfLastWeek = now()->subDay()->endOfDay();
+        //         $query->whereBetween('daily_inputs.date', [$startOfLastWeek, $endOfLastWeek]);
+        //         break;
+
+        //     case 'last_month':
+        //         $startOfLastMonth = now()->subDays(30)->startOfDay();
+        //         $endOfLastMonth = now()->endOfDay();
+        //         $query->whereBetween('daily_inputs.date', [$startOfLastMonth, $endOfLastMonth]);
+        //         break;
+
+        //     case 'last_year':
+        //         $startOfLastYear = now()->subDays(365)->startOfDay();
+        //         $endOfLastYear = now()->endOfDay();
+        //         $query->whereBetween('daily_inputs.date', [$startOfLastYear, $endOfLastYear]);
+        //         break;
+
+        //     case 'this_week':
+        //         $currentDayOfWeek = now()->dayOfWeekIso;
+        //         $startOfWeek = now()->startOfWeek()->subDays(($currentDayOfWeek - $weekStartDay + 7) % 7)->startOfDay();
+        //         $endOfWeek = $startOfWeek->copy()->addDays(6)->endOfDay();
+        //         $query->whereBetween('daily_inputs.date', [$startOfWeek, $endOfWeek]);
+        //         break;
+                
+        // }
 
         if ($request->has('employee_id') && $request->input('employee_id') !== 'all') {
             $employeeId = $request->input('employee_id');
             $query->where('daily_inputs.employee_id', $employeeId);
         }
-
+        $weekStart = SystemSetting::pluck('week_started_day')->first();
+        $weekStart =  $weekStart??6;
         $report_by_employees = $query->orderBy('id', 'DESC')->get();
-        return view('report_by_employee.index', compact('report_by_employees', 'employees'));
+        return view('report_by_employee.index', get_defined_vars());
     }
 
     public function dashboard()
@@ -122,17 +164,40 @@ class DailyInputController extends Controller
             ->leftJoinSub(
                 DB::table('daily_input_details')
                     ->select('daily_input_id', DB::raw('COALESCE(SUM(qty), 0) as total_qty'))
+                    ->whereNull('deleted_at')
                     ->groupBy('daily_input_id'),
                 'details_sum',
                 'daily_inputs.id',
                 'details_sum.daily_input_id'
             )
             ->select('daily_inputs.*', 'details_sum.total_qty');
+           // Get the custom start day from the settings, default to 6 (Saturday) if not set
+            $weekStart = SystemSetting::pluck('week_started_day')->first();
+            $weekStart = $weekStart ?? 6; // Default to Saturday if not set
 
-            $currentDayOfWeek = now()->dayOfWeekIso;
-            $startOfWeek = now()->startOfWeek()->subDays(($currentDayOfWeek - $weekStartDay + 7) % 7)->startOfDay();
+            // Get the current day of the week (1 to 7, where 1 is Monday and 7 is Sunday)
+            $currentDayOfWeek = Carbon::now()->dayOfWeekIso;
+
+            // Calculate the difference between the current day and the custom start day
+            $dayDifference = $weekStart - $currentDayOfWeek;
+
+            // Calculate the start of the week
+            $startOfWeek = Carbon::now()->startOfDay()->addDays($dayDifference);
+            if ($dayDifference > 0) {
+            $startOfWeek->subWeek();
+            }
+
+            // Calculate the end of the week
             $endOfWeek = $startOfWeek->copy()->addDays(6)->endOfDay();
-            $query->whereBetween('daily_inputs.date', [$startOfWeek, $endOfWeek]);
+
+            // Format the dates for the frontend
+            $startOfWeekFormatted = $startOfWeek->format('Y-m-d');
+            $endOfWeekFormatted = $endOfWeek->format('Y-m-d');
+
+            // $currentDayOfWeek = now()->dayOfWeekIso;
+            // $startOfWeek = now()->startOfWeek()->subDays(($currentDayOfWeek - $weekStartDay + 7) % 7)->startOfDay();
+            // $endOfWeek = $startOfWeek->copy()->addDays(6)->endOfDay();
+            $query->whereBetween('daily_inputs.date', [$startOfWeekFormatted, $endOfWeekFormatted]);
 
             $report_by_times = $query->orderBy('id', 'DESC')->get();
 
@@ -147,59 +212,72 @@ class DailyInputController extends Controller
             ->leftJoinSub(
                 DB::table('daily_input_details')
                     ->select('daily_input_id', DB::raw('COALESCE(SUM(qty), 0) as total_qty'))
+                    ->whereNull('deleted_at')
                     ->groupBy('daily_input_id'),
                 'details_sum',
                 'daily_inputs.id',
                 'details_sum.daily_input_id'
             )
             ->select('daily_inputs.*', 'details_sum.total_qty');
-
-        // Determine the filter to apply, default to 'today'
-        $filterBy = $request->input('filter_by', 'today'); 
-        $weekStartDay = SystemSetting::first()->week_started_day ?? 6;
-        switch ($filterBy) {
-            case 'today':
-                $query->whereDate('daily_inputs.date', today());
-                break;
-
-            case 'custom':
-                if ($request->has('filter_date')) {
-                    $filterDate = $request->input('filter_date');
-                    $query->whereDate('daily_inputs.date', $filterDate);
-                }
-                break;
-
-            case 'last_week':
-                $startOfLastWeek = now()->subDays(7)->startOfDay();
-                $endOfLastWeek = now()->subDay()->endOfDay();
-                $query->whereBetween('daily_inputs.date', [$startOfLastWeek, $endOfLastWeek]);
-                break;
-
-            case 'last_month':
-                $startOfLastMonth = now()->subDays(30)->startOfDay();
-                $endOfLastMonth = now()->endOfDay();
-                $query->whereBetween('daily_inputs.date', [$startOfLastMonth, $endOfLastMonth]);
-                break;
-
-            case 'last_year':
-                $startOfLastYear = now()->subDays(365)->startOfDay();
-                $endOfLastYear = now()->endOfDay();
-                $query->whereBetween('daily_inputs.date', [$startOfLastYear, $endOfLastYear]);
-                break;
-
-            case 'this_week':
-                $currentDayOfWeek = now()->dayOfWeekIso;
-                $startOfWeek = now()->startOfWeek()->subDays(($currentDayOfWeek - $weekStartDay + 7) % 7)->startOfDay();
-                $endOfWeek = $startOfWeek->copy()->addDays(6)->endOfDay();
-                $query->whereBetween('daily_inputs.date', [$startOfWeek, $endOfWeek]);
-                break;
+        $dateRange = $request->input('date_range');
+        $dates = explode('_', $dateRange);
+        
+        if(count($dates) == 2) {
+            $startDate = $dates[0];
+            $endDate = $dates[1];
+        } else {
+            // Default to today's date if date range is null or not properly set
+            $startDate = Carbon::today()->format('Y-m-d');
+            $endDate = $startDate;
         }
+        // Determine the filter to apply, default to 'today'
+        // $filterBy = $request->input('filter_by', 'today'); 
+        // $weekStartDay = SystemSetting::first()->week_started_day ?? 6;
+        // switch ($filterBy) {
+        //     case 'today':
+        //         $query->whereDate('daily_inputs.date', today());
+        //         break;
+
+        //     case 'custom':
+        //         if ($request->has('filter_date')) {
+        //             $filterDate = $request->input('filter_date');
+        //             $query->whereDate('daily_inputs.date', $filterDate);
+        //         }
+        //         break;
+
+        //     case 'last_week':
+        //         $startOfLastWeek = now()->subDays(7)->startOfDay();
+        //         $endOfLastWeek = now()->subDay()->endOfDay();
+        //         $query->whereBetween('daily_inputs.date', [$startOfLastWeek, $endOfLastWeek]);
+        //         break;
+
+        //     case 'last_month':
+        //         $startOfLastMonth = now()->subDays(30)->startOfDay();
+        //         $endOfLastMonth = now()->endOfDay();
+        //         $query->whereBetween('daily_inputs.date', [$startOfLastMonth, $endOfLastMonth]);
+        //         break;
+
+        //     case 'last_year':
+        //         $startOfLastYear = now()->subDays(365)->startOfDay();
+        //         $endOfLastYear = now()->endOfDay();
+        //         $query->whereBetween('daily_inputs.date', [$startOfLastYear, $endOfLastYear]);
+        //         break;
+
+        //     case 'this_week':
+        //         $currentDayOfWeek = now()->dayOfWeekIso;
+        //         $startOfWeek = now()->startOfWeek()->subDays(($currentDayOfWeek - $weekStartDay + 7) % 7)->startOfDay();
+        //         $endOfWeek = $startOfWeek->copy()->addDays(6)->endOfDay();
+        //         $query->whereBetween('daily_inputs.date', [$startOfWeek, $endOfWeek]);
+        //         break;
+        // }
 
         // Execute the query and get results
+        $query->whereBetween('date', [$startDate, $endDate]);
         $report_by_times = $query->orderBy('id', 'DESC')->get();
-
+        $weekStart = SystemSetting::pluck('week_started_day')->first();
+        $weekStart =  $weekStart??6;
         // Return the view with the data
-        return view('report_by_time.index', compact('report_by_times'));
+        return view('report_by_time.index', get_defined_vars());
     }
 
     public function monthlySummary(Request $request)
@@ -236,6 +314,20 @@ class DailyInputController extends Controller
 
     public function systemSetting(Request $request)
     {
+        $query = Products::query();
+        $query->with(['dailyInputDetails' => function($query) {
+            $query->select('fnsku')
+            ->selectRaw('SUM(qty) as total_qty')
+            ->groupBy('fnsku');
+        }]);
+
+        // Check if the 'temporary' parameter is set
+        if ($request->has('temporary') && $request->temporary == 'on') {
+            $query->where('item', 'LIKE', '%Temporary Product Name%'); // Adjust this condition to match your temporary product naming
+        }
+        $products =$query->get();
+        // return view('products.index', compact('products'));
+
         $setting = SystemSetting::first();
         $departments = Department::all();
         
@@ -248,16 +340,16 @@ class DailyInputController extends Controller
                 $setting->week_started_day = $request->day;
                 $setting->save();
 
-                return view('system-setting.index', compact('setting', 'departments'))->with('success', 'Day Updated Successfully');
+                return view('system-setting.index', compact('setting', 'departments', 'products'))->with('success', 'Day Updated Successfully');
             } else {
                 $started_day = new SystemSetting;
                 $started_day->week_started_day = $request->day;
                 $started_day->save();
 
-                return view('system-setting.index', compact('setting', 'departments'))->with('success', 'Day Added Successfully');
+                return view('system-setting.index', compact('setting', 'departments', 'products'))->with('success', 'Day Added Successfully');
             }
         } else {
-            return view('system-setting.index', compact('setting', 'departments'));
+            return view('system-setting.index', compact('setting', 'departments', 'products'));
         }
     }
 
@@ -366,7 +458,7 @@ class DailyInputController extends Controller
             $new_product = new Products;
             $new_product->fnsku = $request->fnsku;
             if($request->item ==null || $request->item == ""){
-                $new_product->item = "Tempory Product Name";
+                $new_product->item = "Temporary Product Name";
             }else{
                 $new_product->item = $request->item;
             }
@@ -388,7 +480,7 @@ class DailyInputController extends Controller
         }
        
         $total_packing_cost_per_item = $totalPaid / $total_qty;
-        $total_item_hour = number_format($totalTimeHours, 2) / $total_qty;
+        $total_item_hour =$total_qty/ number_format($totalTimeHours, 2) ;
         
         $dailyInput->total_item_hour = number_format($total_item_hour, 5);
         $dailyInput->total_packing_cost = $total_packing_cost_per_item;

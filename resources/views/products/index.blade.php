@@ -56,12 +56,20 @@
     <div class="row">
         <div class="col-lg-12">
             <div class="card">
-                <div class="card-header d-flex justify-content-between">
+                <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="card-title mb-0">Products Record</h5>
-                    <div class="add-btn">
-                        <a href="{{ route('import.products') }}" class="btn btn-primary me-2">Import Products</a>
-                        <a href="{{ route('import.table') }}" class="btn btn-primary me-2">Import</a>
-                        <a href="{{ route('products.create') }}" class="btn btn-primary">Add Product</a>
+                    <div class="add-btn d-flex align-items-center">
+                        <div class="me-2">
+                            <form id="filterForm" action="{{ route('products.index') }}" method="GET">
+                                <input type="checkbox" id="temporaryProductFilter" name="temporary" class="me-2" 
+                                onchange="document.getElementById('filterForm').submit()"  {{ request('temporary') ? 'checked' : '' }}> Temporary Products
+                            </form>
+                        </div>
+                        <div>
+                            <a href="{{ route('import.products') }}" class="btn btn-primary me-2">Import Products</a>
+                            <a href="{{ route('import.table') }}" class="btn btn-primary me-2">Import</a>
+                            <a href="{{ route('products.create') }}" class="btn btn-primary">Add Product</a>
+                        </div>
                     </div>
                 </div>
                 <div class="card-body">
@@ -136,12 +144,51 @@
                 {
                     extend: 'csvHtml5',
                     text: 'Export CSV',
-                    title: 'ProductsRecord'
+                    title: function() {
+                        let now = new Date();
+                        let month = ('0' + (now.getMonth() + 1)).slice(-2);
+                        let day = ('0' + now.getDate()).slice(-2);
+                        let year = now.getFullYear();
+                        let dateStr = month + '-' + day + '-' + year;
+
+                        let isChecked = $('#temporaryProductFilter').is(':checked');
+                        return isChecked ? 'Products_Record_Temporary_Products_' + dateStr : 'Products_Record_' + dateStr;
+                    },
+                    filename: function() {
+                        let now = new Date();
+                        let month = ('0' + (now.getMonth() + 1)).slice(-2);
+                        let day = ('0' + now.getDate()).slice(-2);
+                        let year = now.getFullYear();
+                        let dateStr = month + '-' + day + '-' + year;
+
+                        let isChecked = $('#temporaryProductFilter').is(':checked');
+                        return isChecked ? 'Products_Record_Temporary_Products_' + dateStr : 'Products_Record_' + dateStr;
+                    }
                 },
                 {
                     extend: 'excelHtml5',
                     text: 'Export Excel',
-                    title: 'ProductsRecord'
+                    title: 'Products',
+                    title: function() {
+                        let now = new Date();
+                        let month = ('0' + (now.getMonth() + 1)).slice(-2);
+                        let day = ('0' + now.getDate()).slice(-2);
+                        let year = now.getFullYear();
+                        let dateStr = month + '-' + day + '-' + year;
+
+                        let isChecked = $('#temporaryProductFilter').is(':checked');
+                        return isChecked ? 'Products_Record_Temporary_Products_' + dateStr : 'Products_Record_' + dateStr;
+                    },
+                    filename: function() {
+                        let now = new Date();
+                        let month = ('0' + (now.getMonth() + 1)).slice(-2);
+                        let day = ('0' + now.getDate()).slice(-2);
+                        let year = now.getFullYear();
+                        let dateStr = month + '-' + day + '-' + year;
+
+                        let isChecked = $('#temporaryProductFilter').is(':checked');
+                        return isChecked ? 'Products_Record_Temporary_Products_' + dateStr : 'Products_Record_' + dateStr;
+                    }
                 }
             ]
         });

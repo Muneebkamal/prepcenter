@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('asin')->nullable();
             $table->string('fnsku')->nullable();
             $table->integer('pack')->default(1);
+            $table->softDeletes();
             $table->timestamps();
         });
     }

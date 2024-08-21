@@ -2,6 +2,25 @@
 
 @section('title', 'System Setting | Prepcenter')
 
+@section('styles')
+    <style>
+        #example4_filter {
+            display: flex;
+            justify-content: start;
+        }
+        #example4_filter label input {
+            width: 100%;
+        }
+
+        .truncate {
+            max-width: 200px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    </style>
+@endsection
+
 @section('content')
 
 <div class="container-fluid">
@@ -11,6 +30,9 @@
             <h5 class="mb-3">System Setting</h5>
             <div class="card">
                 <div class="card-body">
+                    <div class="alert alert-success d-none" id="success-alertj">
+                    </div>
+
                     @if (session('success'))
                         <div class="alert alert-success" id="success-alert">
                             {{ session('success') }}
@@ -32,6 +54,11 @@
                         <li class="nav-item waves-effect waves-light">
                             <a class="nav-link" data-bs-toggle="tab" href="#animation-profile" role="tab">
                                 Departments
+                            </a>
+                        </li>
+                        <li class="nav-item waves-effect waves-light">
+                            <a class="nav-link" data-bs-toggle="tab" href="#products-merge" role="tab">
+                                Products Merge
                             </a>
                         </li>
                     </ul>
@@ -101,6 +128,84 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="tab-pane" id="products-merge" role="tabpanel">
+                            <div class="row mb-3">
+                                <div class="col-lg-12">
+                                    <div class="card">
+                                        <div class="card-header d-flex justify-content-between align-items-center">
+                                            <h5 class="card-title mb-0">Products Record</h5>
+                                            <div class="add-btn d-flex align-items-center">
+                                                <div class="me-2">
+                                                    <form id="filterForm" action="{{ route('system.setting') }}" method="GET">
+                                                        <input type="checkbox" id="temporaryProductFilter" name="temporary" class="me-2" 
+                                                        onchange="document.getElementById('filterForm').submit()"  {{ request('temporary') ? 'checked' : '' }}> Temporary Products
+                                                    </form>
+                                                </div>
+                                                <div>
+                                                    <a href="#" class="btn btn-primary d-none" id="merge-btn">Products Merge</a>
+                                                    {{-- <a href="{{ route('import.products') }}" class="btn btn-primary me-2">Import Products</a>
+                                                    <a href="{{ route('import.table') }}" class="btn btn-primary me-2">Import</a>
+                                                    <a href="{{ route('products.create') }}" class="btn btn-primary">Add Product</a> --}}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="card-body">
+                                            <table id="example4" class="table table-striped align-middle" style="width:100%">
+                                                <thead>
+                                                    <tr>
+                                                        <th data-ordering="false" style="width:3%"><small>#</small></th>
+                                                        <th data-ordering="false" style="width:3%"><small>No</small></th>
+                                                        <th class="w-100" style="width:58%"><small>Item Name</small></th>
+                                                        <th style="width:10%"><small>MSKU/SKU</small></th>
+                                                        <th style="width:10%"><small>ASIN/ITEM.ID</small></th>
+                                                        <th style="width:10%"><small>FNSKU/GTIN</small></th>
+                                                        <th style="width:3%"><small>PACK</small></th>
+                                                        <th style="width:3%"><small>QTY</small></th>
+                                                        {{-- <th>Action</th> --}}
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @php
+                                                    $counter = 1;
+                                                    @endphp
+                                                    @foreach($products as $product)
+                                                        <tr>
+                                                            <td class="py-1">
+                                                                <input type="checkbox" class="form-check-input" name="select_products" id="product{{ $product->id }}" value="{{ $product->id }}" onclick="checkBox({{ $product->id }})">
+                                                            </td>
+                                                            <td class="py-1"><small>{{ $counter }}</small></td>
+                                                            <td class="py-1 truncate" data-toggle="tooltip" title="{{ $product->item }}">
+                                                                <a href="{{ route('products.edit', $product->id) }}">
+                                                                    {{-- <small>{{ Str::limit($product->item, 60, '...') }}</small> --}}
+                                                                    <small>{{ $product->item }}</small>
+                                                                </a>
+                                                            </td>
+                                                            <td class="py-1 fw-bold"><small>{{ $product->msku }}</small></td>
+                                                            <td class="py-1"><small>{{ $product->asin }}</small></td>
+                                                            <td class="py-1"><small>{{ $product->fnsku }}</small></td>
+                                                            <td class="py-1">
+                                                                {{-- @if($product->pack <= 0 || $product->pack == '')
+                                                                    1
+                                                                @else --}}
+                                                                <small>{{ $product->pack }}</small>
+                                                                {{-- @endif --}}
+                                                            </td>
+                                                            <td class="py-1"><small>{{ $product->dailyInputDetails->first()->total_qty ?? 1 }}</small></td>
+                                                            {{-- <td class="py-1">
+                                                                <a href="{{ route('products.edit', $product->id) }}" class="edit-item-btn text-muted"><i class="ri-pencil-fill align-bottom me-2"></i></a>
+                                                            </td> --}}
+                                                        </tr>
+                                                        @php
+                                                        $counter++;
+                                                        @endphp
+                                                    @endforeach
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>       
+                            </div>
+                        </div>
                     </div>
                 </div><!-- end card-body -->
             </div>
@@ -141,6 +246,17 @@
 
 @section('script')
 <script>
+    function checkBox(id){
+        var checkedCount = $('input[name="select_products"]:checked').length;
+        
+        // Show or hide the button based on the count
+        if (checkedCount === 2) {
+            $('#merge-btn').removeClass('d-none');
+        } else {
+            $('#merge-btn').addClass('d-none');
+        }
+    }
+
     $(document).ready(function() {
         $('.edit-item-btn').on('click', function() {
             var id = $(this).data('id');
@@ -157,6 +273,54 @@
         // Set a timeout for the error alert
         $('#error-alert').each(function() {
             setTimeout(() => $(this).fadeOut('slow'), 2000); // 3000 milliseconds = 3 seconds
+        });
+
+
+        $('#example4').DataTable({
+            "ordering": false,
+            pageLength: 100,
+        });
+
+        
+
+        // $('input[name="select_products"]').on('change', function() {
+        //     var checkedCount = $('input[name="select_products"]:checked').length;
+            
+        //     // Show or hide the button based on the count
+        //     if (checkedCount === 2) {
+        //         $('#merge-btn').removeClass('d-none');
+        //     } else {
+        //         $('#merge-btn').addClass('d-none');
+        //     }
+        // });
+
+        $('#merge-btn').on('click', function() {
+            var checkedValues = $('input[name="select_products"]:checked').map(function() {
+                return $(this).val();
+            }).get();
+            // console.log(checkedValues);
+
+            $.ajax({
+                url: '{{ route("temp.products.merge") }}',
+                type: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    select_products: checkedValues
+                },
+                success: function(response) {
+                    // alert('Products merged successfully!');
+                    var successAlert = $('#success-alertj');
+                    $('#success-alertj').removeClass('d-none');
+                    successAlert.text('Products merged successfully!');
+                    successAlert.fadeIn('slow');
+                    setTimeout(function() {
+                        window.location.reload();
+                    }, 1500);
+                },
+                error: function(xhr) {
+                    alert('An error occurred while merging products.');
+                }
+            });
         });
     })
 </script>

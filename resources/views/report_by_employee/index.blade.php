@@ -13,6 +13,16 @@
     #scroll-horizontal {
         height: auto;
     }
+
+    .applyBtn {
+        --vz-btn-bg: var(--vz-success);
+        --vz-btn-border-color: var(--vz-success);
+        --vz-btn-hover-bg: var(--vz-success-text-emphasis);
+        --vz-btn-hover-border-color: var(--vz-success-text-emphasis);
+        --vz-btn-focus-shadow-rgb: var(--vz-success-rgb);
+        --vz-btn-active-bg: var(--vz-success-text-emphasis);
+        --vz-btn-active-border-color: var(--vz-success-text-emphasis);
+    }
 </style>
 @endsection
 
@@ -37,29 +47,34 @@
         </div>
     </div>
 
-    <div class="row mb-3">
+    <div class="row mb-3"> 
         <form id="search_form" action="{{ route('employee.search') }}" method="POST" class="d-flex align-items-center">
             @csrf
-            <div class="col-md-3 p-3">
+            <div class="col-md-4 p-3">
                 <label for="filter-select">
                     Filter By:
                 </label>
-                <select class="form-select" id="filter-select" name="filter_by">
+                {{-- <select class="form-select" id="filter-select" name="filter_by">
                     <option value="today" {{ request('filter_by', 'today') === 'today' ? 'selected' : '' }} >Today</option>
                     <option value="custom" {{ request('filter_by') === 'custom' ? 'selected' : '' }} >Custom Date</option>
                     <option value="this_week" {{ request('filter_by') === 'this_week' ? 'selected' : '' }} >This Week</option>
                     <option value="last_week" {{ request('filter_by') === 'last_week' ? 'selected' : '' }} >Last Week</option>
                     <option value="last_month" {{ request('filter_by') === 'last_month' ? 'selected' : '' }} >Last Month</option>
                     <option value="last_year" {{ request('filter_by') === 'last_year' ? 'selected' : '' }} >Last Year</option>
-                </select>
+                </select> --}}
+                <div id="reportrange" class="reportrange p-2" style="background-color: white; border: var(--vz-border-width) solid var(--vz-input-border-custom); border-radius: var(--vz-border-radius);">
+                    <span></span>
+                    <b class="caret"></b>
+                </div>
+                <input type="hidden" id="date_range" name="date_range" />  
             </div>
-            <div class="col-md-3 p-3 d-none" id="date-div">
+            <div class="col-md-4 p-3 d-none" id="date-div">
                 <label for="date-input">
                     Select Date:
                 </label>
                 <input type="date" class="form-control" id="date-input" name="filter_date">
             </div>
-            <div class="col-md-3 p-3">
+            <div class="col-md-4 p-3">
                 <label for="employee-select">
                     Select Employee:
                 </label>
@@ -132,8 +147,8 @@
                                     $totalMinutes += $minutes;
                                     $totalPaid += $employee->total_paid;
                                     $totalQty += $employee->total_qty ?? 0;
-                                    $totalPackingCost += $employee->total_packing_cost;
-                                    $totalItemHour += $employee->total_item_hour;
+                                    // $totalPackingCost += $employee->total_packing_cost;
+                                    // $totalItemHour += $employee->total_item_hour;
                                 @endphp
                                 <td>{{ $hours }} H {{ $minutes }} m</td>
                                 <td>${{ $employee->total_paid }}</td>
@@ -151,6 +166,16 @@
                                         // Convert total minutes to hours and minutes
                                         $totalHours += intdiv($totalMinutes, 60);
                                         $totalMinutes = $totalMinutes % 60;
+                                        if($totalQty > 0){
+                                            $totalPackingCost = $totalPaid / $totalQty;
+                                            $totalMinutesInHours = $totalMinutes / 60;
+                                            $totalItemHour = $totalQty / ($totalHours + $totalMinutesInHours);
+                                        }else{
+                                            $totalPackingCost = 0;
+                                            $totalItemHour = 0;
+                                        }
+                                        
+
                                     @endphp
                                     {{ $totalHours }} H {{ $totalMinutes }} m
                                 </td>
@@ -201,6 +226,47 @@
 
         $filterSelect.on('change', toggleDateDiv);
         toggleDateDiv();
+    });
+
+    $(function() {
+        var start = {!! json_encode( $startDate) !!};
+        var end = {!! json_encode( $endDate) !!};
+        var start = moment(start, 'YYYY-MM-DD');
+        var end = moment(end, 'YYYY-MM-DD');
+        var dynamicStartDayNumber = {!! json_encode( $weekStart) !!};
+
+        var today = moment();
+        var startOfWeek = today.clone().startOf('week').add(dynamicStartDayNumber, 'days');
+        if (startOfWeek.isAfter(today)) {
+            startOfWeek.subtract(7, 'days');
+        }
+        var endOfWeek = startOfWeek.clone().add(6, 'days');
+        var startOfLastWeek = startOfWeek.clone().subtract(7, 'days');
+        var endOfLastWeek = endOfWeek.clone().subtract(7, 'days');
+
+        function cb(start, end) {
+            $('#reportrange span').html(start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
+            $("#date_range").val(start.format('YYYY-M-D') + '_' + end.format('YYYY-M-D'));
+        }
+
+        $('#reportrange').daterangepicker({
+            startDate: start,
+            endDate: end,
+            ranges: {
+                'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                'This Week': [startOfWeek, endOfWeek],
+                'Last Week': [startOfLastWeek, endOfLastWeek],
+                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                'This Month': [moment().startOf('month'), moment().endOf('month')],
+                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')],
+                'Last 3 Months': [moment().subtract(2, 'month').startOf('month'), moment().endOf('month')],
+                'Last 6 Months': [moment().subtract(5, 'month').startOf('month'), moment().endOf('month')],
+                'This Year': [moment().startOf('year'), moment().endOf('year')],
+                'Last Year': [moment().subtract(1, 'year').startOf('year'), moment().subtract(1, 'year').endOf('year')]
+            }
+        }, cb);
+
+        cb(start, end);
     });
 </script>
 @endsection

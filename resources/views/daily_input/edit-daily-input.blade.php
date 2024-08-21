@@ -36,15 +36,18 @@
                                     <td>Employee Name</td>
                                     <td>:<span class="ms-2">{{ $daily_input->user->name ?? 'N/A' }}</span></td>
                                 </tr>
+                                @php
+                                use Carbon\Carbon;
+                                @endphp
                                 <tr>
                                     <td>Start Time</td>
-                                    <td>:<span class="ms-2">{{ $daily_input->start_time }}</span>
+                                    <td>:<span class="ms-2">{{ \Carbon\Carbon::parse($daily_input->start_time)->format('H:i') }}</span>
                                         <a href="{{ route('daily-input.edit', $daily_input->id) }}">(<i class="ri-pencil-fill align-bottom"></i> Edit)</a>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td>End Time</td>
-                                    <td>:<span class="ms-2">{{ $daily_input->end_time }}</span>
+                                    <td>:<span class="ms-2">{{ \Carbon\Carbon::parse($daily_input->end_time)->format('H:i') }}</span>
                                         <a href="{{ route('daily-input.edit', $daily_input->id) }}">(<i class="ri-pencil-fill align-bottom"></i> Edit)</a>
                                     </td>
                                 </tr>
@@ -180,7 +183,7 @@
                                 @endphp
                                 <td>
                                     <div class="d-flex">
-                                        <a data-id="{{ $detail->id }}" data-pack="{{ $detail->pack }}" data-qty="{{ $detail->qty }}" data-name="{{ $detail->product->item }}" data-fnsku="{{ $detail->fnsku }}" data-bs-toggle="modal" data-bs-target="#editmodal" class="d-flex btn btn-success edit-item-btn me-1"><i class="ri-pencil-fill align-bottom me-2"></i> Edit</a>
+                                        <a data-id="{{ $detail->id }}" data-pack="{{ $detail->pack }}" data-qty="{{ $detail->qty }}" data-name="{{ $detail->product->item }}" data-fnsku="{{ $detail->fnsku }}" data-bs-toggle="modal" data-bs-target="#editmodal" class="d-flex btn btn-primary edit-item-btn me-1"><i class="ri-pencil-fill align-bottom me-2"></i> Edit</a>
                                         <form method="POST" action="{{ route('daily.input.detail.delete', $detail->id) }}" style="display:inline;">
                                             @csrf
                                             <button type="submit" class="d-flex btn btn-danger remove-item-btn">
@@ -388,7 +391,23 @@
                 }
             });
         });
+        $('#editForm').on('keypress', function(event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault(); // Prevent form submission on Enter key press
+
+                    // Check if FNSKU and QTY fields have values
+                    var fnsku = $('#fnsku-input').val().trim();
+                    var qty = $('input[name="qty"]').val().trim();
+
+                    if (fnsku && qty) {
+                        $('#editForm').submit(); // Submit the form
+                    } else {
+                        alert('Please fill in both FNSKU and QTY fields.');
+                    }
+                }
+            });
     });
+
 
 </script>
 @endsection

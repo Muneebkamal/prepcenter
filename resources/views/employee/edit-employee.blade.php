@@ -141,14 +141,16 @@
                                 </div>
                                 @enderror
                             </div>
-                            <div class="col-md-6 mt-2">
-                                <label for="">Rate</label>
-                                <input type="number" name="rate" id="rate" class="form-control" value="{{ $employee->rate }}">
+                            <div class="col-md-6 mt-4">
+                                <label for="rate"><strong>Current Rate: </strong><span id="currentRate">{{ $employee->rate  }}</span></span>
+                                   </label>
+                                <a href="#" id="changeRate">Change Rate</a>
+                                {{-- <input type="number" name="rate" id="rate" class="form-control" value="{{ $employee->rate }}">
                                 @error('rate')
                                 <div class="invalid-feedback">
                                     {{ $message }}
                                 </div>
-                                @enderror
+                                @enderror --}}
                             </div>
 
                             <div class="col-md-12">
@@ -175,14 +177,18 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form id="dateForm">
+                <form id="rate-form" action="{{ url('update-rate') }}" method="post">
                     @csrf
-                    <div class="row">
-                        <div class="col-md-12 mt-2">
-                            <label for="">Date</label>
-                            <input type="date" name="rate_date" class="form-control" max='{{ now()->format('Y-m-d') }}' required>
-                        </div>
+                    <div class="form-group">
+                        <label for="new-rate">Rate</label>
+                        <input type="number" value="{{ $employee->rate }}" class="form-control" id="rate" name="rate" required>
                     </div>
+                    <input type="hidden" class="form-control" id="emoloye_id" name="emoloye_id" value="{{ $employee->id }}">
+                    <div class="form-group">
+                        <label for="rate-date">Date</label>
+                        <input type="date" class="form-control" id="rate-date" name="rate_date" required value="{{ \Carbon\Carbon::now()->toDateString() }}"  max="{{ \Carbon\Carbon::now()->toDateString() }}">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save changes</button>
                 </form>
             </div>
         </div><!-- /.modal-content -->
@@ -193,9 +199,8 @@
 
 @section('script')
 <script>
-        $('#rate').on('change', function() {
-            var editModal = new bootstrap.Modal(document.getElementById('editmodal'));
-            editModal.show();
+        $('#changeRate').on('click', function() {
+            var editModal = $('#editmodal').modal('show');
         });
 
      $(document).ready(function() {

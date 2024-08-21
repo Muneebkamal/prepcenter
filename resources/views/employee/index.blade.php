@@ -135,7 +135,8 @@
 <script>
     $(document).ready(function() {
         $('#example1').DataTable({
-            "ordering": false
+            "ordering": false,
+            "pageLength": 50
         });
     });
 </script>

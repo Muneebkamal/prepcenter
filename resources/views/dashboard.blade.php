@@ -109,8 +109,8 @@
                                     $totalMinutes += $minutes;
                                     $totalPaid += $time->total_paid;
                                     $totalQty += $time->total_qty ?? 0;
-                                    $totalPackingCost += $time->total_packing_cost;
-                                    $totalItemHour += $time->total_item_hour;
+                                    // $totalPackingCost += $time->total_packing_cost;
+                                    // $totalItemHour += $time->total_item_hour;
                                 @endphp
                                 <td>{{ $hours }} H {{ $minutes }} m</td>
                                 <td>${{ $time->total_paid }}</td>
@@ -128,6 +128,15 @@
                                         // Convert total minutes to hours and minutes
                                         $totalHours += intdiv($totalMinutes, 60);
                                         $totalMinutes = $totalMinutes % 60;
+
+                                        if($totalQty > 0){
+                                            $totalPackingCost = $totalPaid / $totalQty;
+                                            $totalMinutesInHours = $totalMinutes / 60;
+                                            $totalItemHour = $totalQty / ($totalHours + $totalMinutesInHours);
+                                        }else{
+                                            $totalPackingCost = 0;
+                                            $totalItemHour = 0;
+                                        }
                                     @endphp
                                     {{ $totalHours }} H {{ $totalMinutes }} m
                                 </td>

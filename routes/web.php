@@ -43,6 +43,7 @@ Route::middleware(['auth'])->group(function () {
 
     // daily Input Detail data
     Route::get('/daily-input-details/merge', [EmployeeController::class, 'dailyInputDetailMerge']);
+    Route::post('/update-rate', [EmployeeController::class, 'emplpyeeRate']);
 
     Route::resource('products', ProductsController::class);
 
@@ -53,6 +54,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/daily-input-detail-delete{id}', [DailyInputController::class, 'delete'])->name('daily.input.detail.delete');
 
     Route::get('/import/products', [ProductsController::class, 'importProducts'])->name('import.products');
+    Route::post('/upload/products', [ProductsController::class, 'upload'])->name('csv.upload');
+    Route::post('/saveimp/products', [ProductsController::class, 'saveColumns'])->name('csv.saveColumns');
 
     Route::get('/delete-duplicate', [ProductsController::class, 'deleteDuplicate'])->name('delete-duplicate');
     
@@ -73,4 +76,6 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/system-setting', [DailyInputController::class, 'systemSetting'])->name('system.setting');
     Route::post('/system-setting-add', [DailyInputController::class, 'systemSetting'])->name('system.setting.add');
     Route::post('/department-add', [DailyInputController::class, 'depAdd'])->name('department.add');
+
+    Route::post('/temp-products/merge', [ProductsController::class, 'tempProductMerge'])->name('temp.products.merge');
 });
